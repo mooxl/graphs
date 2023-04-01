@@ -18,7 +18,7 @@ export class Graph {
     });
   }
 
-  get components() {
+  get subGraphs() {
     let visited = this.bfs(0);
     const subgraphs = [[...visited]];
     for (let i = 1; i < this.size; i++) {
