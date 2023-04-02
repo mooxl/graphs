@@ -1,6 +1,6 @@
 import { Graph } from "./graph.ts";
 
-const graph = new Graph("ganzGross");
+const graph = new Graph("gross");
 
 console.log(graph.subGraphs.length);
 
