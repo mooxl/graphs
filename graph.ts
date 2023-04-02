@@ -20,7 +20,7 @@ export class Graph {
 
   get subGraphs() {
     const visited = new Set<number>();
-    const subgraphs = [];
+    const subgraphs: number[][] = [];
     for (let i = 0; i < this.size; i++) {
       if (!visited.has(i)) {
         const subgraph = this.bfs(i);
@@ -35,11 +35,11 @@ export class Graph {
 
   private bfs(start: number) {
     const visited = new Set([start]);
-    const queue = new Set([...this.nodes.get(start)!]);
+    const queue = new Set(this.nodes.get(start)!);
     while (queue.size) {
       const node = queue.values().next().value;
       visited.add(node);
-      for (const item of [...this.nodes.get(node)!]) {
+      for (const item of this.nodes.get(node)!) {
         if (!visited.has(item)) queue.add(item);
       }
       queue.delete(node);
