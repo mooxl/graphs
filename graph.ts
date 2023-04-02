@@ -19,13 +19,15 @@ export class Graph {
   }
 
   get subGraphs() {
-    let visited = this.bfs(0);
-    const subgraphs = [[...visited]];
-    for (let i = 1; i < this.size; i++) {
+    const visited = new Set<number>();
+    const subgraphs = [];
+    for (let i = 0; i < this.size; i++) {
       if (!visited.has(i)) {
         const subgraph = this.bfs(i);
         subgraphs.push([...subgraph]);
-        visited = new Set([...visited, ...subgraph]);
+        for (const node of subgraph) {
+          visited.add(node);
+        }
       }
     }
     return subgraphs;
