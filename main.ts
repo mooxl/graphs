@@ -1,7 +1,7 @@
 import { Select, Toggle, colors } from "cliffy";
 import { Graph } from "./graph.ts";
 
-export const verbose = await Toggle.prompt("Show times?");
+export const verbose = await Toggle.prompt("Show the time?");
 
 const graph = new Graph(
   await Select.prompt({

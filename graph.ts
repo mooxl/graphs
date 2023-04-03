@@ -15,11 +15,11 @@ export class Graph {
     for (let i = 0; i < this.size; i++) {
       this.nodes.set(i, new Set());
     }
-    lines.forEach((line) => {
+    for (const line of lines) {
       const [from, to] = line.split("\t").map((node) => +node);
       this.nodes.get(from)!.add(to);
       this.nodes.get(to)!.add(from);
-    });
+    }
     end = performance.now();
     verbose && this.logTime("Graph built in", start, end);
   }
