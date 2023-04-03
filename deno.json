@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "cliffy": "https://deno.land/x/cliffy@v0.25.7/mod.ts",
+    "duration": "https://deno.land/std@0.182.0/fmt/duration.ts"
+  }
+}
