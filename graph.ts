@@ -25,35 +25,32 @@ export class Graph {
   }
 
   get subGraphs() {
-    const visited = new Set<number>();
-    const subgraphs: number[][] = [];
+    const visited = new Uint8Array(this.size);
+    let subgraphs = 0;
+    const start = performance.now();
     for (let i = 0; i < this.size; i++) {
-      if (!visited.has(i)) {
-        const start = performance.now();
-        const subgraph = this.bfs(i);
-        subgraphs.push([...subgraph]);
-        for (const node of subgraph) {
-          visited.add(node);
-        }
-        const end = performance.now();
-        verbose && this.logTime("Subgraph created in", start, end);
+      if (!visited[i]) {
+        visited[i] = 1;
+        this.dfs(i, visited);
+        subgraphs++;
       }
     }
+    const end = performance.now();
+    verbose && this.logTime("Subgraph created in", start, end);
     return subgraphs;
   }
 
-  private bfs(start: number) {
-    const visited = new Set([start]);
-    const queue = new Set(this.nodes.get(start)!);
-    while (queue.size) {
-      const node = queue.values().next().value;
-      visited.add(node);
-      for (const neighbor of this.nodes.get(node)!) {
-        if (!visited.has(neighbor)) queue.add(neighbor);
+  private dfs(start: number, visited: Uint8Array) {
+    const stack = [start];
+    while (stack.length) {
+      const node = stack.pop()!;
+      for (const neighbor of this.nodes.get(node!)!) {
+        if (!visited[neighbor]) {
+          visited[neighbor] = 1;
+          stack.push(neighbor);
+        }
       }
-      queue.delete(node);
     }
-    return visited;
   }
 
   private logTime(text: string, start: number, end: number) {
