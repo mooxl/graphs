@@ -48,8 +48,8 @@ export class Graph {
     while (queue.size) {
       const node = queue.values().next().value;
       visited.add(node);
-      for (const item of this.nodes.get(node)!) {
-        if (!visited.has(item)) queue.add(item);
+      for (const neighbor of this.nodes.get(node)!) {
+        if (!visited.has(neighbor)) queue.add(neighbor);
       }
       queue.delete(node);
     }
