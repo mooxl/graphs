@@ -35,9 +35,7 @@ while (true) {
       break;
     case "subgraphsSize":
       console.log(
-        `The graph has ${colors.magenta(
-          graph.subGraphs.length.toString()
-        )} subgraphs`
+        `The graph has ${colors.magenta(graph.subGraphs.toString())} subgraphs`
       );
       break;
     case "subgraphsNodes":
