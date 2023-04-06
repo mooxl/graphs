@@ -7,7 +7,8 @@ const graph = new Graph(
   await Select.prompt({
     message: "Choose a graph",
     options: ["1", "2", "3", "gross", "ganzGross", "ganzGanzGross"],
-  })
+  }),
+  verbose
 );
 
 while (true) {
