@@ -1,5 +1,8 @@
 import { format } from "duration";
 import { colors } from "cliffy";
+import { measureTime } from "./decorators.ts";
+
+
 export class Graph {
   size: number;
   nodes: number[][];
@@ -32,18 +35,16 @@ export class Graph {
     this.verbose && this.logTime("Graph built in", start, end);
   }
 
+  
   get subGraphs() {
     const visited = new Uint8Array(this.size);
     const subgraphs: number[][] = [];
-    const start = performance.now();
     for (let i = 0; i < this.size; i++) {
       if (!visited[i]) {
         visited[i] = 1;
         subgraphs.push(this.dfs(i, visited));
       }
     }
-    const end = performance.now();
-    this.verbose && this.logTime("Subgraphs created in", start, end);
     return subgraphs;
   }
 
@@ -69,5 +70,10 @@ export class Graph {
         format(end - start, { ignoreZero: true })
       )}`
     );
+  }
+
+  @measureTime()
+  printTimeAfterFunction(){
+    return this.subGraphs;
   }
 }

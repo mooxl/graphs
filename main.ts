@@ -22,6 +22,7 @@ while (true) {
       Select.separator("---------"),
       { name: "Size of subgraphs", value: "subgraphsSize" },
       { name: "List of subgraphs", value: "subgraphsNodes" },
+      { name: "Measure Time with decorator", value: "measureTime"}
     ],
   });
   switch (command) {
@@ -43,5 +44,7 @@ while (true) {
     case "subgraphsNodes":
       console.log(graph.subGraphs);
       break;
+    case "measureTime":
+      graph.printTimeAfterFunction();
   }
 }
