@@ -2,5 +2,11 @@
   "imports": {
     "cliffy": "https://deno.land/x/cliffy@v0.25.7/mod.ts",
     "duration": "https://deno.land/std@0.182.0/fmt/duration.ts"
+  },
+  "tasks": {
+    "run": "deno run -A main.ts",
+    "bench": "deno bench -A",
+    "bench_building": "deno bench -A --filter \"building\"",
+    "bench_subgraph": "deno bench -A --filter \"subgraph\""
   }
 }

@@ -10,7 +10,6 @@ const graph = new Graph(
   }),
   verbose
 );
-
 while (true) {
   const command = await Select.prompt({
     message: "What do you want to see?",
