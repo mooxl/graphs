@@ -34,13 +34,12 @@ export class Graph {
 
   get subGraphs() {
     const visited = new Uint8Array(this.size);
-    let subgraphs = 0;
+    const subgraphs: number[][] = [];
     const start = performance.now();
     for (let i = 0; i < this.size; i++) {
       if (!visited[i]) {
         visited[i] = 1;
-        this.dfs(i, visited);
-        subgraphs++;
+        subgraphs.push(this.dfs(i, visited));
       }
     }
     const end = performance.now();
@@ -50,8 +49,10 @@ export class Graph {
 
   private dfs(start: number, visited: Uint8Array) {
     const stack = [start];
+    const subgraph = [];
     while (stack.length) {
       const node = stack.pop()!;
+      subgraph.push(node);
       for (const neighbor of this.nodes[node]!) {
         if (!visited[neighbor]) {
           visited[neighbor] = 1;
@@ -59,6 +60,7 @@ export class Graph {
         }
       }
     }
+    return subgraph;
   }
 
   private logTime(text: string, start: number, end: number) {
