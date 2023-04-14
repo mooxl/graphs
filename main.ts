@@ -6,7 +6,20 @@ export const verbose = await Toggle.prompt("Show the time?");
 const graph = new Graph(
   await Select.prompt({
     message: "Choose a graph",
-    options: ["1", "2", "3", "gross", "ganzGross", "ganzGanzGross"],
+    options: [
+      "1",
+      "2",
+      "3",
+      "gross",
+      "ganzGross",
+      "ganzGanzGross",
+      "G_1_2",
+      "G_1_20",
+      "G_1_200",
+      "G_10_20",
+      "G_10_200",
+      "G_100_200",
+    ],
   }),
   verbose
 );
