@@ -1,8 +1,9 @@
 import { format } from "duration";
 import { colors } from "cliffy";
+
 export class Graph {
   size: number;
-  nodes: number[][];
+  nodes: { to: number; weight: number }[][];
   verbose: boolean;
 
   constructor(graph: string, verbose: boolean) {
@@ -23,9 +24,11 @@ export class Graph {
     this.verbose && this.logTime("Graph filled in", start, end);
     start = performance.now();
     for (const line of lines) {
-      const [from, to] = line.split("\t").map((node) => +node);
-      if (!this.nodes[from].includes(to)) this.nodes[from].push(to);
-      if (!this.nodes[to].includes(from)) this.nodes[to]!.push(from);
+      const [from, to, weight] = line.split("\t").map((node) => +node);
+      if (!this.nodes[from].find((node) => node.to === to))
+        this.nodes[from].push({ to, weight });
+      if (!this.nodes[to].find((node) => node.to === from))
+        this.nodes[to]!.push({ to: from, weight });
     }
 
     end = performance.now();
@@ -54,9 +57,9 @@ export class Graph {
       const node = stack.pop()!;
       subgraph.push(node);
       for (const neighbor of this.nodes[node]!) {
-        if (!visited[neighbor]) {
-          visited[neighbor] = 1;
-          stack.push(neighbor);
+        if (!visited[neighbor.to]) {
+          visited[neighbor.to] = 1;
+          stack.push(neighbor.to);
         }
       }
     }
