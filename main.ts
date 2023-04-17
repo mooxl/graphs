@@ -62,7 +62,9 @@ while (true) {
       break;
     case "primWeight":
       console.log(
-        graph.prim.reduce((acc, node) => acc + node.weight, 0).toFixed(5)
+        `The graph has an MST with a weight of ${colors.magenta(
+          graph.prim.reduce((acc, node) => acc + node.weight, 0).toFixed(5)
+        )}`
       );
       break;
     case "primNodes":
