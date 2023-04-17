@@ -7,6 +7,7 @@ const graph = new Graph(
   await Select.prompt({
     message: "Choose a graph",
     options: [
+      "test",
       "1",
       "2",
       "3",
@@ -35,6 +36,9 @@ while (true) {
       Select.separator("---------"),
       { name: "Size of subgraphs", value: "subgraphsSize" },
       { name: "List of subgraphs", value: "subgraphsNodes" },
+      Select.separator("---------"),
+      { name: "Weight of MST via Prim", value: "primWeight" },
+      { name: "MST via Prim", value: "primNodes" },
     ],
   });
   switch (command) {
@@ -55,6 +59,14 @@ while (true) {
       break;
     case "subgraphsNodes":
       console.log(graph.subGraphs);
+      break;
+    case "primWeight":
+      console.log(
+        graph.prim.reduce((acc, node) => acc + node.weight, 0).toFixed(5)
+      );
+      break;
+    case "primNodes":
+      console.log(graph.prim);
       break;
   }
 }
