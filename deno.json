@@ -5,6 +5,7 @@
     "collections": "https://deno.land/std@0.183.0/collections",
     "collections/": "https://deno.land/std@0.183.0/collections/"
   },
+  "lock": false,
   "tasks": {
     "run": "deno run -A main.ts",
     "bench": "deno bench -A",
