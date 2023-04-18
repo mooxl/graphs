@@ -64,7 +64,6 @@ export class Graph {
     for (const node of this.nodes) {
       heap.push(...node);
     }
-    let count = 0;
     while (!heap.isEmpty()) {
       const edge = heap.pop()!;
       const setIdFrom = this.findSetId(edge.from, setId);
@@ -73,7 +72,6 @@ export class Graph {
         mst.push(edge);
         setId[setIdFrom] = setIdTo;
       }
-      count++;
     }
     this.logTime("MST created in", start, performance.now());
     return mst;
