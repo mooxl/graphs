@@ -85,7 +85,7 @@ export class Graph {
     for (const node of this.nodes) {
       heap.push(...node);
     }
-    while (mst.length < this.size - 1) {
+    while (!heap.isEmpty()) {
       const edge = heap.pop()!;
       const setIdFrom = this.findSetId(edge.from, setId);
       const setIdTo = this.findSetId(edge.to, setId);
