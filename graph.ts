@@ -79,18 +79,20 @@ export class Graph {
     const mst: Node[] = [];
     const start = performance.now();
     const setId = Array.from({ length: this.size }, (_, i) => i);
-    const edges = this.nodes.flat();
-    edges.sort((a, b) => a.weight - b.weight);
-    let i = 0;
+    const heap = new BinaryHeap<Node>(
+      (a: Node, b: Node) => a.weight - b.weight
+    );
+    for (const node of this.nodes) {
+      heap.push(...node);
+    }
     while (mst.length < this.size - 1) {
-      const edge = edges[i];
+      const edge = heap.pop()!;
       const setIdFrom = this.findSetId(edge.from, setId);
       const setIdTo = this.findSetId(edge.to, setId);
       if (setIdFrom !== setIdTo) {
         mst.push(edge);
         setId[setIdTo] = setIdFrom;
       }
-      i++;
     }
     this.verbose && this.logTime("MST created in", start, performance.now());
     return mst;
