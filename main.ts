@@ -50,7 +50,7 @@ while (true) {
         );
         break;
       case "graphNodes":
-        console.log(graph.edges);
+        console.log(graph.nodes);
         break;
       case "subgraphsSize":
         console.log(
