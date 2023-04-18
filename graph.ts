@@ -64,14 +64,16 @@ export class Graph {
     for (const node of this.nodes) {
       heap.push(...node);
     }
+    let count = 0;
     while (!heap.isEmpty()) {
       const edge = heap.pop()!;
       const setIdFrom = this.findSetId(edge.from, setId);
       const setIdTo = this.findSetId(edge.to, setId);
       if (setIdFrom !== setIdTo) {
         mst.push(edge);
-        setId[setIdTo] = setIdFrom;
+        setId[setIdFrom] = setIdTo;
       }
+      count++;
     }
     this.logTime("MST created in", start, performance.now());
     return mst;
@@ -90,10 +92,10 @@ export class Graph {
     while (stack.length) {
       const node = stack.pop()!;
       subgraph.push(node);
-      for (const neighbor of this.nodes[node]!) {
-        if (!visited[neighbor.to]) {
-          visited[neighbor.to] = 1;
-          stack.push(neighbor.to);
+      for (const edge of this.nodes[node]!) {
+        if (!visited[edge.to]) {
+          visited[edge.to] = 1;
+          stack.push(edge.to);
         }
       }
     }
