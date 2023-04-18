@@ -13,11 +13,9 @@ export class Graph {
     this.size = +lines.shift()!;
     this.nodes = Array.from({ length: this.size }, () => []);
     for (const line of lines) {
-      const [from, to, weight] = line.split("\t").map((edge) => +edge);
-      if (!this.nodes[from].find((edge) => edge.to === to))
-        this.nodes[from].push({ from, to, weight });
-      if (!this.nodes[to].find((edge) => edge.to === from))
-        this.nodes[to]!.push({ from: to, to: from, weight });
+      const [from, to, weight] = line.split("\t").map((value) => +value);
+      this.nodes[from].push({ from, to, weight });
+      this.nodes[to]!.push({ from: to, to: from, weight });
     }
     this.logTime("Graph built in", start, performance.now());
   }
