@@ -6,25 +6,23 @@ type Node = { from: number; to: number; weight: number };
 export class Graph {
   size: number;
   nodes: Node[][];
-  verbose: boolean;
 
-  constructor(graph: string, verbose: boolean) {
-    this.verbose = verbose;
+  constructor(graph: string) {
     let start = performance.now();
     const data = Deno.readTextFileSync(`./graphs/${graph}.txt`);
-    this.verbose && this.logTime("File read in", start, performance.now());
+    this.logTime("File read in", start, performance.now());
     start = performance.now();
-    const lines = data.split("\r\n"); //
+    const lines = data.split("\r\n");
     this.size = +lines.shift()!;
-    this.verbose &&
-      this.logTime(
-        "Lines split and size initialized in",
-        start,
-        performance.now()
-      );
+
+    this.logTime(
+      "Lines split and size initialized in",
+      start,
+      performance.now()
+    );
     start = performance.now();
     this.nodes = Array.from({ length: this.size }, () => []);
-    this.verbose && this.logTime("Graph filled in", start, performance.now());
+    this.logTime("Graph filled in", start, performance.now());
     start = performance.now();
     for (const line of lines) {
       const [from, to, weight] = line.split("\t").map((node) => +node);
@@ -33,7 +31,7 @@ export class Graph {
       if (!this.nodes[to].find((node) => node.to === from))
         this.nodes[to]!.push({ from: to, to: from, weight });
     }
-    this.verbose && this.logTime("Graph built in", start, performance.now());
+    this.logTime("Graph built in", start, performance.now());
   }
 
   get subGraphs() {
@@ -46,8 +44,7 @@ export class Graph {
         subgraphs.push(this.dfs(i, visited));
       }
     }
-    this.verbose &&
-      this.logTime("Subgraphs created in", start, performance.now());
+    this.logTime("Subgraphs created in", start, performance.now());
     return subgraphs;
   }
 
@@ -71,7 +68,7 @@ export class Graph {
         }
       }
     }
-    this.verbose && this.logTime("MST created in", start, performance.now());
+    this.logTime("MST created in", start, performance.now());
     return mst;
   }
 
@@ -94,7 +91,7 @@ export class Graph {
         setId[setIdTo] = setIdFrom;
       }
     }
-    this.verbose && this.logTime("MST created in", start, performance.now());
+    this.logTime("MST created in", start, performance.now());
     return mst;
   }
 
