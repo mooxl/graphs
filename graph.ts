@@ -36,30 +36,6 @@ export class Graph {
     this.verbose && this.logTime("Graph built in", start, performance.now());
   }
 
-  get prim() {
-    const visited = new Uint8Array(this.size);
-    const mst: Node[] = [];
-    const start = performance.now();
-    const heap = new BinaryHeap<Node>(
-      (a: Node, b: Node) => a.weight - b.weight
-    );
-    heap.push({ from: 0, to: 0, weight: 0 });
-    while (!heap.isEmpty()) {
-      const node = heap.pop()!;
-      if (!visited[node.to]) {
-        visited[node.to] = 1;
-        mst.push(node);
-        for (const neighbor of this.nodes[node.to]) {
-          if (!visited[neighbor.to]) {
-            heap.push(neighbor);
-          }
-        }
-      }
-    }
-    this.verbose && this.logTime("MST created in", start, performance.now());
-    return mst;
-  }
-
   get subGraphs() {
     const visited = new Uint8Array(this.size);
     const subgraphs: number[][] = [];
@@ -73,6 +49,58 @@ export class Graph {
     this.verbose &&
       this.logTime("Subgraphs created in", start, performance.now());
     return subgraphs;
+  }
+
+  get prim() {
+    const visited = new Uint8Array(this.size);
+    const mst: Node[] = [];
+    const start = performance.now();
+    const heap = new BinaryHeap<Node>(
+      (a: Node, b: Node) => a.weight - b.weight
+    );
+    heap.push({ from: 0, to: 0, weight: 0 });
+    while (!heap.isEmpty()) {
+      const edge = heap.pop()!;
+      if (!visited[edge.to]) {
+        visited[edge.to] = 1;
+        mst.push(edge);
+        for (const neighbor of this.nodes[edge.to]) {
+          if (!visited[neighbor.to]) {
+            heap.push(neighbor);
+          }
+        }
+      }
+    }
+    this.verbose && this.logTime("MST created in", start, performance.now());
+    return mst;
+  }
+
+  get kruskal() {
+    const mst: Node[] = [];
+    const start = performance.now();
+    const setId = Array.from({ length: this.size }, (_, i) => i);
+    const edges = this.nodes.flat();
+    edges.sort((a, b) => a.weight - b.weight);
+    let i = 0;
+    while (mst.length < this.size - 1) {
+      const edge = edges[i];
+      const setIdFrom = this.findSetId(edge.from, setId);
+      const setIdTo = this.findSetId(edge.to, setId);
+      if (setIdFrom !== setIdTo) {
+        mst.push(edge);
+        setId[setIdTo] = setIdFrom;
+      }
+      i++;
+    }
+    this.verbose && this.logTime("MST created in", start, performance.now());
+    return mst;
+  }
+
+  private findSetId(node: number, setId: number[]) {
+    if (setId[node] !== node) {
+      setId[node] = this.findSetId(setId[node], setId);
+    }
+    return setId[node];
   }
 
   private dfs(start: number, visited: Uint8Array) {

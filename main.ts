@@ -38,6 +38,9 @@ while (true) {
       Select.separator("---------"),
       { name: "Weight of MST via Prim", value: "primWeight" },
       { name: "MST via Prim", value: "primNodes" },
+      Select.separator("---------"),
+      { name: "Weight of MST via Kruskal", value: "kruskalWeight" },
+      { name: "MST via Kruskal", value: "kruskalNodes" },
     ],
   });
   switch (command) {
@@ -68,6 +71,16 @@ while (true) {
       break;
     case "primNodes":
       console.log(graph.prim);
+      break;
+    case "kruskalWeight":
+      console.log(
+        `The graph has an MST with a weight of ${colors.magenta(
+          graph.kruskal.reduce((acc, node) => acc + node.weight, 0).toFixed(5)
+        )}`
+      );
+      break;
+    case "kruskalNodes":
+      console.log(graph.kruskal);
       break;
   }
 }
