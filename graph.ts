@@ -120,9 +120,7 @@ export class Graph {
 
   private logTime(text: string, start: number, end: number) {
     console.log(
-      `${text} ${colors.bold.magenta(
-        format(end - start, { ignoreZero: true })
-      )}`
+      `${text} ${colors.magenta(format(end - start, { ignoreZero: true }))}`
     );
   }
 }
