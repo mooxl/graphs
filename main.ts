@@ -7,7 +7,6 @@ const graph = new Graph(
   await Select.prompt({
     message: "Choose a graph",
     options: [
-      "test",
       "1",
       "2",
       "3",

@@ -1,6 +1,7 @@
 import { format } from "duration";
 import { colors } from "cliffy";
 import { BinaryHeap } from "collections/binary_heap.ts";
+
 type Node = { from: number; to: number; weight: number };
 export class Graph {
   size: number;
