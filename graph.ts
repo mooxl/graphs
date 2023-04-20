@@ -61,8 +61,8 @@ export class Graph {
     const mst: Edge[] = [];
     const setId = Array.from({ length: this.size }, (_, i) => i);
     const heap = new BinaryHeap<Edge>((a, b) => a.weight - b.weight);
-    for (const edges of this.nodes) {
-      heap.push(...edges);
+    for (const nodes of this.nodes) {
+      heap.push(...nodes);
     }
     while (!heap.isEmpty()) {
       const edge = heap.pop()!;
