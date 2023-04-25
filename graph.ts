@@ -78,7 +78,7 @@ export class Graph {
   }
 
   private findSetId(node: number, setId: number[]) {
-    if (setId[node] !== node) {
+    if (node !== setId[node]) {
       setId[node] = this.findSetId(setId[node], setId);
     }
     return setId[node];
