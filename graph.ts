@@ -81,90 +81,86 @@ export class Graph {
     this.logTime("MST created in", start, performance.now());
     return mst;
   }
+  get nearestNeighbour() {
+    const visited = new Uint8Array(this.size);
+    let currentNode = 0;
+    const path: Edge[] = [];
+    visited[0] = 1;
+    for (let i = 1; i < this.size; i++) {
+      let nextEdge: Edge | null = null;
+      let minWeight = Infinity;
+      for (const edge of this.nodes[currentNode]) {
+        if (!visited[edge.to] && edge.weight < minWeight) {
+          minWeight = edge.weight;
+          nextEdge = edge;
+        }
+      }
+      if (nextEdge !== null) {
+        visited[nextEdge.to] = 1;
+        path.push(nextEdge);
+        currentNode = nextEdge.to;
+      }
+    }
+    for (const edge of this.nodes[currentNode]) {
+      if (edge.to === 0) {
+        path.push(edge);
+        break;
+      }
+    }
+    return path;
+  }
+
+  get doubleTree(): Edge[] {
+    const mst = this.kruskal;
+    const doubleMst: Edge[] = [];
+    for (const edge of mst) {
+      doubleMst.push(edge);
+      doubleMst.push({ from: edge.to, to: edge.from, weight: edge.weight });
+    }
+    const eulerTour = this.eulerTour(doubleMst, 0);
+    console.log(eulerTour);
+    const visited = new Uint8Array(this.size);
+    const path: Edge[] = [];
+    let currentNode = 0;
+    for (const edge of eulerTour) {
+      if (!visited[edge.to]) {
+        visited[edge.to] = 1;
+        path.push(edge);
+        currentNode = edge.to;
+      }
+    }
+    for (const edge of this.nodes[currentNode]) {
+      if (edge.to === 0) {
+        path.push(edge);
+        break;
+      }
+    }
+
+    return path;
+  }
+
+  private eulerTour(edges: Edge[], start: number) {
+    const visited = new Uint8Array(this.size);
+    const stack = [start];
+    const tour: Edge[] = [];
+    while (stack.length) {
+      const currentNode = stack.pop()!;
+      for (const edge of edges) {
+        if (edge.from === currentNode && !visited[edge.to]) {
+          visited[edge.to] = 1;
+          stack.push(edge.to);
+          tour.push(edge);
+        }
+      }
+    }
+    return tour;
+  }
 
   private findSetId(node: number, setId: number[]) {
     if (node !== setId[node]) {
       setId[node] = this.findSetId(setId[node], setId);
     }
     return setId[node];
-  }
-
-  get nearestNeighbor() {
-    const start = performance.now();
-    const visited = new Uint8Array(this.size);
-    const path: Edge[] = [];
-    visited[0] = 1;
-    while (visited.includes(0)) {
-      let nearestNeighbor: Edge | undefined;
-      for (const edge of this.nodes[path[path.length - 1]?.to || 0]) {
-        if (!visited[edge.to]) {
-          if (!nearestNeighbor || edge.weight < nearestNeighbor.weight) {
-            nearestNeighbor = edge;
-          }
-        }
-      }
-      path.push(nearestNeighbor!);
-      visited[nearestNeighbor!.to] = 1;
-    }
-    path.push(
-      this.nodes[path[path.length - 1].to].find(
-        (edge) => edge.to === path[0].from
-      )!
-    );
-    this.logTime("Path created in", start, performance.now());
-    return path;
-  }
-
-  get tsp() {
-    const start = performance.now();
-    const nodes = Array.from({ length: this.size }, (_, i) => i);
-    let minCost = Infinity;
-    let minPath: Edge[] = [];
-    const permutations = this.permute(nodes.slice(1));
-    for (const perm of permutations) {
-      const path = [nodes[0], ...perm, nodes[0]];
-      let cost = 0;
-      for (let i = 0; i < path.length - 1; i++) {
-        const edge = this.nodes[path[i]].find((e) => e.to === path[i + 1])!;
-        cost += edge.weight;
-      }
-      if (cost < minCost) {
-        minCost = cost;
-        minPath = path
-          .map((n, i) => ({
-            from: n,
-            to: path[i + 1],
-            weight:
-              this.nodes[n].find((e) => e.to === path[i + 1])?.weight || 0,
-          }))
-          .slice(0, -1);
-      }
-    }
-    this.logTime("Optimal path found in", start, performance.now());
-    return minPath;
-  }
-
-  private permute(nodes: number[]): number[][] {
-    const result: number[][] = [];
-    const counters = new Array(nodes.length).fill(0);
-    result.push([...nodes]);
-    let i = 0;
-    while (i < nodes.length) {
-      if (counters[i] < i) {
-        if (i % 2 === 0) {
-          [nodes[0], nodes[i]] = [nodes[i], nodes[0]];
-        } else {
-          [nodes[counters[i]], nodes[i]] = [nodes[i], nodes[counters[i]]];
-        }
-        result.push([...nodes]);
-        counters[i]++;
-        i = 0;
-      } else {
-        counters[i] = 0;
-        i++;
-      }
-    }
-    return result;
   }
 
   private dfs(start: number, visited: Uint8Array) {
