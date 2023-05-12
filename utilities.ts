@@ -25,19 +25,16 @@ const pathToEdges = (graph: Graph, path: number[]) => {
   return edges;
 };
 
-const permute = (nodes: number[]) => {
-  if (nodes.length === 1) return [nodes];
-  const result: number[][] = [];
-  for (let i = 0; i < nodes.length; i++) {
-    const first = nodes[i];
-    const rest = [...nodes.slice(0, i), ...nodes.slice(i + 1)];
-    const innerPermutations = permute(rest);
-
-    for (let j = 0; j < innerPermutations.length; j++) {
-      result.push([first, ...innerPermutations[j]]);
+const permute = function* (nodes: number[], start = 0): Generator<number[]> {
+  if (start >= nodes.length) {
+    yield nodes;
+  } else {
+    for (let i = start; i < nodes.length; i++) {
+      [nodes[start], nodes[i]] = [nodes[i], nodes[start]];
+      yield* permute(nodes, start + 1);
+      [nodes[start], nodes[i]] = [nodes[i], nodes[start]];
     }
   }
-  return result;
 };
 
 const eulerTour = (graph: Graph, edges: Edge[]) => {
@@ -98,9 +95,9 @@ const logWeight = (edges: Edge[]) => {
 export {
   logTime,
   dfs,
+  permute,
   findSetId,
   eulerTour,
-  permute,
   pathToEdges,
   getTourWeight,
   logWeight,
