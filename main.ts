@@ -6,6 +6,7 @@ import {
   bruteForce,
   dijkstra,
   doubleTree,
+  edmondsKarp,
   kruskal,
   nearestNeighbour,
   prim,
@@ -64,6 +65,7 @@ while (true) {
         { name: "Length via Branch and Bound", value: "branchAndBound" },
         { name: "Shortest Path via Dijkstra", value: "dijkstra" },
         { name: "Shortest Path via Bellman-Ford", value: "bellmanFord" },
+        { name: "Max Flow via Edmonds-Karp", value: "edmondsKarp" },
         { name: "Exit", value: "exit" },
       ],
     });
@@ -114,6 +116,21 @@ while (true) {
           )}`
         );
         break;
+      }
+      case "edmondsKarp": {
+        const source = await Input.prompt({
+          message: "Choose a source node",
+          default: "0",
+        });
+        const sink = await Input.prompt({
+          message: "Choose a sink node",
+          default: "0",
+        });
+        console.log(
+          `The max flow from ${source} to ${sink} is ${colors.cyan(
+            edmondsKarp(graph, +source, +sink).toFixed(2)
+          )}`
+        );
       }
     }
     if (command === "exit") {
