@@ -19,6 +19,8 @@ while (true) {
         "1",
         "2",
         "3",
+        "Fluss",
+        "Fluss2",
         "gross",
         "ganzGross",
         "ganzGanzGross",
@@ -39,6 +41,9 @@ while (true) {
         "K_50",
         "K_70",
         "K_100",
+        "Wege1",
+        "Wege2",
+        "Wege3",
       ],
     })
   );
