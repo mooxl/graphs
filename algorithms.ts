@@ -192,6 +192,58 @@ const branchAndBound = (graph: Graph) => {
   return bestTour;
 };
 
+const dijkstra = (graph: Graph, startNode: number) => {
+  const start = performance.now();
+  const distances = Array(graph.size).fill(Infinity);
+  distances[startNode] = 0;
+  const visited = new Uint8Array(graph.size);
+  const heap = new BinaryHeap<Edge>((a: Edge, b: Edge) => a.weight - b.weight);
+  heap.push({ from: startNode, to: startNode, weight: 0 });
+  while (!heap.isEmpty()) {
+    const { to } = heap.pop()!;
+    if (visited[to]) continue;
+    visited[to] = 1;
+
+    for (const neighbor of graph.nodes[to]) {
+      if (!visited[neighbor.to]) {
+        const newDistance = distances[to] + neighbor.weight;
+        if (newDistance < distances[neighbor.to]) {
+          distances[neighbor.to] = newDistance;
+          heap.push({ from: to, to: neighbor.to, weight: newDistance });
+        }
+      }
+    }
+  }
+  logTime("Dijkstra finished in", start, performance.now());
+  return distances;
+};
+
+const bellmanFord = (graph: Graph, startNode: number) => {
+  const start = performance.now();
+  const distances = Array(graph.size).fill(Infinity);
+  distances[startNode] = 0;
+  for (let i = 0; i < graph.size - 1; i++) {
+    for (let j = 0; j < graph.size; j++) {
+      for (const edge of graph.nodes[j]) {
+        const newDistance = distances[edge.from] + edge.weight;
+        if (newDistance < distances[edge.to]) {
+          distances[edge.to] = newDistance;
+        }
+      }
+    }
+  }
+  for (let j = 0; j < graph.size; j++) {
+    for (const edge of graph.nodes[j]) {
+      const newDistance = distances[edge.from] + edge.weight;
+      if (newDistance < distances[edge.to]) {
+        throw new Error("Graph contains a negative-weight cycle");
+      }
+    }
+  }
+  logTime("Bellman-Ford finished in", start, performance.now());
+  return distances;
+};
+
 export {
   subGraphs,
   prim,
@@ -200,4 +252,6 @@ export {
   doubleTree,
   bruteForce,
   branchAndBound,
+  dijkstra,
+  bellmanFord,
 };
