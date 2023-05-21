@@ -9,6 +9,8 @@ import {
   findSetId,
   eulerTour,
   permute,
+  bfs,
+  residualCapacity,
 } from "./utilities.ts";
 
 const subGraphs = (graph: Graph) => {
@@ -244,6 +246,31 @@ const bellmanFord = (graph: Graph, startNode: number) => {
   return distances;
 };
 
+const edmondsKarp = (graph: Graph, source: number, sink: number) => {
+  const start = performance.now();
+  const parents = new Array(graph.size).fill(-1);
+  let maxFlow = 0;
+  while (bfs(graph, source, sink, parents)) {
+    let pathFlow = Number.MAX_VALUE;
+    for (let v = sink; v !== source; v = parents[v]) {
+      const u = parents[v];
+      pathFlow = Math.min(pathFlow, residualCapacity(graph, u, v));
+    }
+    for (let v = sink; v !== source; v = parents[v]) {
+      const u = parents[v];
+      const forwardEdge = graph.nodes[u].find((edge) => edge.to === v);
+      if (forwardEdge) forwardEdge.weight -= pathFlow;
+      const backwardEdge = graph.nodes[v].find((edge) => edge.to === u);
+      if (backwardEdge) backwardEdge.weight += pathFlow;
+      else graph.nodes[v].push({ from: v, to: u, weight: pathFlow });
+    }
+    maxFlow += pathFlow;
+  }
+  logTime("Edmonds-Karp finished in", start, performance.now());
+  console.log("Max flow is", maxFlow);
+  return maxFlow;
+};
+
 export {
   subGraphs,
   prim,
@@ -254,4 +281,5 @@ export {
   branchAndBound,
   dijkstra,
   bellmanFord,
+  edmondsKarp,
 };
