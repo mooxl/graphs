@@ -95,10 +95,8 @@ const bfs = (
 ): boolean => {
   const visited = new Array(graph.size).fill(false);
   const queue: number[] = [];
-
   queue.push(start);
   visited[start] = true;
-
   while (queue.length) {
     const node = queue.shift()!;
     for (const edge of graph.nodes[node]) {
@@ -110,7 +108,6 @@ const bfs = (
       }
     }
   }
-
   return false;
 };
 
