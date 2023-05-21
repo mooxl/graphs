@@ -1,8 +1,10 @@
-import { Input, Select, colors } from "cliffy";
+import { Input, Select, Toggle, colors } from "cliffy";
 import { Graph } from "./graph.ts";
 import {
+  bellmanFord,
   branchAndBound,
   bruteForce,
+  dijkstra,
   doubleTree,
   kruskal,
   nearestNeighbour,
@@ -12,6 +14,7 @@ import {
 import { logWeight } from "./utilities.ts";
 
 while (true) {
+  const directed = await Toggle.prompt("Is the graph directed?");
   const graph = new Graph(
     await Input.prompt({
       message: "Choose a graph",
@@ -45,7 +48,8 @@ while (true) {
         "Wege2",
         "Wege3",
       ],
-    })
+    }),
+    directed
   );
   while (true) {
     const command = await Select.prompt({
@@ -58,6 +62,8 @@ while (true) {
         { name: "Length via Double Tree", value: "doubleTree" },
         { name: "Length via Brute Force", value: "bruteForce" },
         { name: "Length via Branch and Bound", value: "branchAndBound" },
+        { name: "Shortest Path via Dijkstra", value: "dijkstra" },
+        { name: "Shortest Path via Bellman-Ford", value: "bellmanFord" },
         { name: "Exit", value: "exit" },
       ],
     });
@@ -91,6 +97,24 @@ while (true) {
       case "branchAndBound":
         console.log(`The length is ${logWeight(branchAndBound(graph))}`);
         break;
+      case "bellmanFord":
+      case "dijkstra": {
+        const chosenFunction = command === "dijkstra" ? dijkstra : bellmanFord;
+        const startNode = await Input.prompt({
+          message: "Choose a start node",
+          default: "0",
+        });
+        const endNode = await Input.prompt({
+          message: "Choose a end node",
+          default: "0",
+        });
+        console.log(
+          `The shortest paths from ${startNode} to ${endNode} is ${colors.cyan(
+            chosenFunction(graph, +startNode)[+endNode].toFixed(2)
+          )}`
+        );
+        break;
+      }
     }
     if (command === "exit") {
       break;
