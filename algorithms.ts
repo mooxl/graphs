@@ -251,7 +251,7 @@ const edmondsKarp = (graph: Graph, source: number, sink: number) => {
   const parents = new Array(graph.size).fill(-1);
   let maxFlow = 0;
   while (bfs(graph, source, sink, parents)) {
-    let pathFlow = Number.MAX_VALUE;
+    let pathFlow = Infinity;
     for (let v = sink; v !== source; v = parents[v]) {
       const u = parents[v];
       pathFlow = Math.min(pathFlow, residualCapacity(graph, u, v));
@@ -267,7 +267,6 @@ const edmondsKarp = (graph: Graph, source: number, sink: number) => {
     maxFlow += pathFlow;
   }
   logTime("Edmonds-Karp finished in", start, performance.now());
-  console.log("Max flow is", maxFlow);
   return maxFlow;
 };
 
