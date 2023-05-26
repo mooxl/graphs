@@ -78,6 +78,30 @@ const dfs = (graph: Graph, start: number, visited: Uint8Array) => {
   return subgraph;
 };
 
+const bfs = (
+  graph: Graph,
+  start: number,
+  end: number,
+  parents: number[]
+): boolean => {
+  const visited = new Uint8Array(graph.size);
+  const queue: number[] = [];
+  queue.push(start);
+  visited[start] = 1;
+  while (queue.length) {
+    const node = queue.shift()!;
+    for (const edge of graph.nodes[node]) {
+      if (!visited[edge.to] && residualCapacity(graph, node, edge.to) > 0) {
+        queue.push(edge.to);
+        visited[edge.to] = 1;
+        parents[edge.to] = node;
+        if (edge.to === end) return true;
+      }
+    }
+  }
+  return false;
+};
+
 const residualCapacity = (graph: Graph, from: number, to: number) => {
   for (const edge of graph.nodes[from]) {
     if (edge.to === to) {
@@ -85,30 +109,6 @@ const residualCapacity = (graph: Graph, from: number, to: number) => {
     }
   }
   return 0;
-};
-
-const bfs = (
-  graph: Graph,
-  start: number,
-  end: number,
-  parents: number[]
-): boolean => {
-  const visited = new Array(graph.size).fill(false);
-  const queue: number[] = [];
-  queue.push(start);
-  visited[start] = true;
-  while (queue.length) {
-    const node = queue.shift()!;
-    for (const edge of graph.nodes[node]) {
-      if (!visited[edge.to] && residualCapacity(graph, node, edge.to) > 0) {
-        queue.push(edge.to);
-        visited[edge.to] = true;
-        parents[edge.to] = node;
-        if (edge.to === end) return true;
-      }
-    }
-  }
-  return false;
 };
 
 const logTime = (text: string, start: number, end: number) => {

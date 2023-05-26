@@ -205,7 +205,6 @@ const dijkstra = (graph: Graph, startNode: number) => {
     const { to } = heap.pop()!;
     if (visited[to]) continue;
     visited[to] = 1;
-
     for (const neighbor of graph.nodes[to]) {
       if (!visited[neighbor.to]) {
         const newDistance = distances[to] + neighbor.weight;
