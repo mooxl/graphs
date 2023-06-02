@@ -247,21 +247,23 @@ const bellmanFord = (graph: Graph, startNode: number) => {
 
 const edmondsKarp = (graph: Graph, source: number, sink: number) => {
   const start = performance.now();
+  const newGraph: Graph = structuredClone(graph);
   const parents = new Array(graph.size).fill(-1);
   let maxFlow = 0;
-  while (bfs(graph, source, sink, parents)) {
+  while (bfs(newGraph, source, sink, parents)) {
     let pathFlow = Infinity;
     for (let v = sink; v !== source; v = parents[v]) {
       const u = parents[v];
-      pathFlow = Math.min(pathFlow, residualCapacity(graph, u, v));
+      pathFlow = Math.min(pathFlow, residualCapacity(newGraph, u, v));
     }
     for (let v = sink; v !== source; v = parents[v]) {
       const u = parents[v];
-      const forwardEdge = graph.nodes[u].find((edge) => edge.to === v);
+      const forwardEdge = newGraph.nodes[u].find((edge) => edge.to === v);
+      const backwardEdge = newGraph.nodes[v].find((edge) => edge.to === u);
       if (forwardEdge) forwardEdge.weight -= pathFlow;
-      const backwardEdge = graph.nodes[v].find((edge) => edge.to === u);
-      if (backwardEdge) backwardEdge.weight += pathFlow;
-      else graph.nodes[v].push({ from: v, to: u, weight: pathFlow });
+      backwardEdge
+        ? (backwardEdge.weight += pathFlow)
+        : newGraph.nodes[v].push({ from: v, to: u, weight: pathFlow });
     }
     maxFlow += pathFlow;
   }
