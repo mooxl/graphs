@@ -6,7 +6,7 @@ import { Edge } from "./types.ts";
 const getTourWeight = (graph: Graph, path: number[]) => {
   let weight = 0;
   for (let i = 1; i < path.length; i++) {
-    const edge = graph.nodes[path[i - 1]].find(
+    const edge = graph.nodes[path[i - 1]].edges.find(
       (edge: Edge) => edge.to === path[i]
     )!;
     weight += edge.weight;
@@ -17,7 +17,7 @@ const getTourWeight = (graph: Graph, path: number[]) => {
 const pathToEdges = (graph: Graph, path: number[]) => {
   const edges: Edge[] = [];
   for (let i = 1; i < path.length; i++) {
-    const edge = graph.nodes[path[i - 1]].find(
+    const edge = graph.nodes[path[i - 1]].edges.find(
       (edge: Edge) => edge.to === path[i]
     )!;
     edges.push(edge);
@@ -68,7 +68,7 @@ const dfs = (graph: Graph, start: number, visited: Uint8Array) => {
     const node = stack.pop()!;
     visited[node] = 1;
     subgraph.push(node);
-    for (const edge of graph.nodes[node]!) {
+    for (const edge of graph.nodes[node]!.edges) {
       if (!visited[edge.to]) {
         visited[edge.to] = 1;
         stack.push(edge.to);
@@ -90,7 +90,7 @@ const bfs = (
   visited[start] = 1;
   while (queue.length) {
     const node = queue.shift()!;
-    for (const edge of graph.nodes[node]) {
+    for (const edge of graph.nodes[node].edges) {
       if (!visited[edge.to] && residualCapacity(graph, node, edge.to) > 0) {
         queue.push(edge.to);
         visited[edge.to] = 1;
@@ -103,7 +103,7 @@ const bfs = (
 };
 
 const residualCapacity = (graph: Graph, from: number, to: number) => {
-  for (const edge of graph.nodes[from]) {
+  for (const edge of graph.nodes[from].edges) {
     if (edge.to === to) {
       return edge.weight;
     }
