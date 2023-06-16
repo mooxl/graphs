@@ -4,6 +4,7 @@ import {
   bellmanFord,
   branchAndBound,
   bruteForce,
+  cycleCanceling,
   dijkstra,
   doubleTree,
   edmondsKarp,
@@ -57,6 +58,7 @@ while (true) {
     true
   );
   while (true) {
+    console.log(cycleCanceling(graph).flowGraph);
     const command = await Select.prompt({
       message: "What do you want to see?",
       options: [
