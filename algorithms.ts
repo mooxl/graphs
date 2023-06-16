@@ -32,7 +32,7 @@ const prim = (graph: Graph) => {
   const visited = new Uint8Array(graph.size);
   const mst: Edge[] = [];
   const heap = new BinaryHeap<Edge>((a: Edge, b: Edge) => a.weight - b.weight);
-  heap.push({ from: 0, to: 0, weight: 0 });
+  heap.push({ from: 0, to: 0, weight: 0, capacity: 0, flow: 0 });
   while (!heap.isEmpty()) {
     const edge = heap.pop()!;
     if (!visited[edge.to]) {
@@ -107,7 +107,13 @@ const doubleTree = (graph: Graph) => {
   const doubleMst: Edge[] = [];
   for (const edge of mst) {
     doubleMst.push(edge);
-    doubleMst.push({ from: edge.to, to: edge.from, weight: edge.weight });
+    doubleMst.push({
+      from: edge.to,
+      to: edge.from,
+      weight: edge.weight,
+      capacity: 0,
+      flow: 0,
+    });
   }
   const tour = eulerTour(graph, doubleMst);
   const visited = new Uint8Array(graph.size);
@@ -154,6 +160,8 @@ const bruteForce = (graph: Graph) => {
           weight:
             graph.nodes[n].edges.find((edge: Edge) => edge.to === path[i + 1])
               ?.weight || 0,
+          capacity: 0,
+          flow: 0,
         }))
         .slice(0, -1);
     }
@@ -200,7 +208,13 @@ const dijkstra = (graph: Graph, startNode: number) => {
   distances[startNode] = 0;
   const visited = new Uint8Array(graph.size);
   const heap = new BinaryHeap<Edge>((a: Edge, b: Edge) => a.weight - b.weight);
-  heap.push({ from: startNode, to: startNode, weight: 0 });
+  heap.push({
+    from: startNode,
+    to: startNode,
+    weight: 0,
+    capacity: 0,
+    flow: 0,
+  });
   while (!heap.isEmpty()) {
     const { to } = heap.pop()!;
     if (visited[to]) continue;
@@ -210,7 +224,13 @@ const dijkstra = (graph: Graph, startNode: number) => {
         const newDistance = distances[to] + neighbor.weight;
         if (newDistance < distances[neighbor.to]) {
           distances[neighbor.to] = newDistance;
-          heap.push({ from: to, to: neighbor.to, weight: newDistance });
+          heap.push({
+            from: to,
+            to: neighbor.to,
+            weight: newDistance,
+            capacity: 0,
+            flow: 0,
+          });
         }
       }
     }
@@ -262,16 +282,28 @@ const edmondsKarp = (graph: Graph, source: number, sink: number) => {
       const backwardEdge = newGraph.nodes[v].edges.find(
         (edge) => edge.to === u
       );
-      if (forwardEdge) forwardEdge.weight -= pathFlow;
-      backwardEdge
-        ? (backwardEdge.weight += pathFlow)
-        : newGraph.nodes[v].edges.push({ from: v, to: u, weight: pathFlow });
+      if (forwardEdge) {
+        forwardEdge.weight -= pathFlow;
+        forwardEdge.flow += pathFlow; // Adding the flow on the forward edge
+      }
+      if (backwardEdge) {
+        backwardEdge.weight += pathFlow;
+        backwardEdge.flow -= pathFlow; // Subtracting the flow from the backward edge
+      } else {
+        newGraph.nodes[v].edges.push({
+          from: v,
+          to: u,
+          weight: pathFlow,
+          capacity: 0,
+          flow: -pathFlow,
+        }); // Adding the flow on the new edge
+      }
     }
     maxFlow += pathFlow;
   }
   logTime("Edmonds-Karp finished in", start, performance.now());
   console.log(newGraph);
-  return maxFlow;
+  return { maxFlow, flowGraph: newGraph }; // Returning the max flow and the flow graph
 };
 
 export {

@@ -12,7 +12,7 @@ import {
   prim,
   subGraphs,
 } from "./algorithms.ts";
-import { logWeight } from "./utilities.ts";
+import { generateMaxFlow, logWeight } from "./utilities.ts";
 
 while (true) {
   const directed = await Toggle.prompt("Is the graph directed?");
@@ -73,6 +73,7 @@ while (true) {
         { name: "Exit", value: "exit" },
       ],
     });
+    console.log(generateMaxFlow(graph).originalGraphWithFlow);
     switch (command) {
       case "graph":
         console.log(graph);
@@ -135,7 +136,7 @@ while (true) {
         });
         console.log(
           `The max flow from ${source} to ${sink} is ${colors.cyan(
-            edmondsKarp(graph, +source, +sink).toFixed(2)
+            edmondsKarp(graph, +source, +sink).maxFlow.toFixed(2)
           )}`
         );
       }

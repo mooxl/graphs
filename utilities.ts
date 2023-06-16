@@ -2,6 +2,7 @@ import { format } from "duration";
 import { colors } from "cliffy";
 import { Graph } from "./graph.ts";
 import { Edge } from "./types.ts";
+import { edmondsKarp } from "./algorithms.ts";
 
 const getTourWeight = (graph: Graph, path: number[]) => {
   let weight = 0;
@@ -111,6 +112,90 @@ const residualCapacity = (graph: Graph, from: number, to: number) => {
   return 0;
 };
 
+const addSuperSourceAndSink = (graph: Graph) => {
+  const newGraph: Graph = structuredClone(graph);
+  newGraph.size += 2; // Adding 2 for the supersource and supersink
+
+  // Add supersource and supersink nodes
+  newGraph.nodes.push({ balance: 0, edges: [] }); // supersource
+  newGraph.nodes.push({ balance: 0, edges: [] }); // supersink
+
+  // The supersource and supersink indices
+  const supersource = newGraph.size - 2;
+  const supersink = newGraph.size - 1;
+
+  // Find source nodes (nodes with positive balance)
+  const sourceNodes = [];
+  const sinkNodes = [];
+  for (let i = 0; i < newGraph.size - 2; i++) {
+    // Subtract 2 to avoid the newly added nodes
+    if (newGraph.nodes[i].balance > 0) {
+      sourceNodes.push(i);
+    } else if (newGraph.nodes[i].balance < 0) {
+      sinkNodes.push(i);
+    }
+  }
+
+  // Connect the supersource to each source node with weight as the node's balance
+  for (const sourceNode of sourceNodes) {
+    newGraph.nodes[supersource].edges.push({
+      from: supersource,
+      to: sourceNode,
+      weight: newGraph.nodes[sourceNode].balance,
+      capacity: newGraph.nodes[sourceNode].balance,
+      flow: 0,
+    });
+  }
+
+  // Connect each sink node to the supersink with weight as the absolute value of the node's balance
+  for (const sinkNode of sinkNodes) {
+    newGraph.nodes[sinkNode].edges.push({
+      from: sinkNode,
+      to: supersink,
+      weight: Math.abs(newGraph.nodes[sinkNode].balance),
+      capacity: Math.abs(newGraph.nodes[sinkNode].balance),
+      flow: 0,
+    });
+  }
+
+  return { newGraph, supersource, supersink };
+};
+
+const removeSuperSourceAndSink = (
+  graph: Graph,
+  supersource: number,
+  supersink: number
+) => {
+  const newGraph: Graph = structuredClone(graph);
+
+  // Remove edges connected to the supersource and supersink
+  newGraph.nodes = newGraph.nodes.map((node) => {
+    node.edges = node.edges.filter(
+      (edge) => edge.from !== supersource && edge.to !== supersink
+    );
+    return node;
+  });
+
+  // Remove the supersource and supersink nodes
+  newGraph.nodes.splice(supersource, 1);
+  newGraph.nodes.splice(supersink - 1, 1); // Subtract 1 because the array size has decreased
+
+  newGraph.size -= 2; // Subtracting 2 for the supersource and supersink
+
+  return newGraph;
+};
+
+const generateMaxFlow = (graph: Graph) => {
+  const { newGraph, supersink, supersource } = addSuperSourceAndSink(graph);
+  const { maxFlow, flowGraph } = edmondsKarp(newGraph, supersource, supersink);
+  const originalGraphWithFlow = removeSuperSourceAndSink(
+    flowGraph,
+    supersource,
+    supersink
+  );
+  return { maxFlow, originalGraphWithFlow };
+};
+
 const logTime = (text: string, start: number, end: number) => {
   console.log(
     `${text} ${colors.magenta(format(end - start, { ignoreZero: true }))}`
@@ -136,4 +221,5 @@ export {
   bfs,
   residualCapacity,
   logWeight,
+  generateMaxFlow,
 };
