@@ -11,6 +11,7 @@ import {
   permute,
   bfs,
   residualCapacity,
+  generateMaxFlow,
 } from "./utilities.ts";
 
 const subGraphs = (graph: Graph) => {
@@ -241,7 +242,8 @@ const dijkstra = (graph: Graph, startNode: number) => {
 
 const bellmanFord = (graph: Graph, startNode: number) => {
   const start = performance.now();
-  const distances = Array(graph.size).fill(Infinity);
+  const distances: number[] = Array(graph.size).fill(Infinity);
+  const predecessors = Array(graph.size).fill(-1);
   distances[startNode] = 0;
   for (let i = 0; i < graph.size - 1; i++) {
     for (let j = 0; j < graph.size; j++) {
@@ -249,6 +251,7 @@ const bellmanFord = (graph: Graph, startNode: number) => {
         const newDistance = distances[edge.from] + edge.weight;
         if (newDistance < distances[edge.to]) {
           distances[edge.to] = newDistance;
+          predecessors[edge.to] = edge.from;
         }
       }
     }
@@ -257,16 +260,29 @@ const bellmanFord = (graph: Graph, startNode: number) => {
     for (const edge of graph.nodes[j].edges) {
       const newDistance = distances[edge.from] + edge.weight;
       if (newDistance < distances[edge.to]) {
-        throw new Error("Graph contains a negative-weight cycle");
+        const negativeCycle = [];
+        let currentNode = edge.to;
+        for (let i = 0; i < graph.size; i++) {
+          currentNode = predecessors[currentNode];
+        }
+        let cycleNode = currentNode;
+        do {
+          negativeCycle.push(cycleNode);
+          cycleNode = predecessors[cycleNode];
+        } while (cycleNode !== currentNode);
+        negativeCycle.push(cycleNode);
+        return { nodes: negativeCycle.reverse(), negative: true };
       }
     }
   }
+
   logTime("Bellman-Ford finished in", start, performance.now());
-  return distances;
+  return { nodes: distances, negative: false };
 };
 
 const edmondsKarp = (graph: Graph, source: number, sink: number) => {
   const start = performance.now();
+  const flowGraph: Graph = structuredClone(graph);
   const newGraph: Graph = structuredClone(graph);
   const parents = new Array(graph.size).fill(-1);
   let maxFlow = 0;
@@ -279,16 +295,22 @@ const edmondsKarp = (graph: Graph, source: number, sink: number) => {
     for (let v = sink; v !== source; v = parents[v]) {
       const u = parents[v];
       const forwardEdge = newGraph.nodes[u].edges.find((edge) => edge.to === v);
+      const forwardEdgeFlowGraph = flowGraph.nodes[u].edges.find(
+        (edge) => edge.to === v
+      );
       const backwardEdge = newGraph.nodes[v].edges.find(
         (edge) => edge.to === u
       );
       if (forwardEdge) {
-        forwardEdge.weight -= pathFlow;
-        forwardEdge.flow += pathFlow; // Adding the flow on the forward edge
+        forwardEdge.capacity -= pathFlow;
+        forwardEdge.flow += pathFlow;
+        if (forwardEdgeFlowGraph) {
+          forwardEdgeFlowGraph.flow += pathFlow;
+        }
       }
       if (backwardEdge) {
-        backwardEdge.weight += pathFlow;
-        backwardEdge.flow -= pathFlow; // Subtracting the flow from the backward edge
+        backwardEdge.capacity -= pathFlow;
+        backwardEdge.flow += pathFlow;
       } else {
         newGraph.nodes[v].edges.push({
           from: v,
@@ -296,14 +318,22 @@ const edmondsKarp = (graph: Graph, source: number, sink: number) => {
           weight: 0,
           capacity: pathFlow,
           flow: -pathFlow,
-        }); // Adding the flow on the new edge
+        });
       }
     }
     maxFlow += pathFlow;
   }
+  if (
+    flowGraph.nodes[source].balance + flowGraph.nodes[sink].balance !== 0 ||
+    flowGraph.nodes[source].edges.reduce(
+      (acc, edge) => acc - edge.flow,
+      flowGraph.nodes[source].balance
+    ) !== 0
+  ) {
+    throw new Error("No possible b-flow found");
+  }
   logTime("Edmonds-Karp finished in", start, performance.now());
-  console.log(newGraph);
-  return { maxFlow, flowGraph: newGraph }; // Returning the max flow and the flow graph
+  return { maxFlow, flowGraph };
 };
 
 export {

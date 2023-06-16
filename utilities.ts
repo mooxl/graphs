@@ -112,7 +112,7 @@ const residualCapacity = (graph: Graph, from: number, to: number) => {
   return 0;
 };
 
-const addSuperSourceAndSink = (graph: Graph) => {
+const generateMaxFlow = (graph: Graph) => {
   const newGraph: Graph = structuredClone(graph);
   newGraph.size += 2;
   newGraph.nodes.push({ balance: 0, edges: [] });
@@ -134,7 +134,7 @@ const addSuperSourceAndSink = (graph: Graph) => {
       to: sourceNode,
       weight: 0,
       capacity: newGraph.nodes[sourceNode].balance,
-      flow: newGraph.nodes[sourceNode].balance,
+      flow: 0,
     });
     newGraph.nodes[supersource].balance += newGraph.nodes[sourceNode].balance;
     newGraph.nodes[sourceNode].balance = 0;
@@ -145,48 +145,22 @@ const addSuperSourceAndSink = (graph: Graph) => {
       to: supersink,
       weight: 0,
       capacity: Math.abs(newGraph.nodes[sinkNode].balance),
-      flow: Math.abs(newGraph.nodes[sinkNode].balance),
+      flow: 0,
     });
     newGraph.nodes[supersink].balance += newGraph.nodes[sinkNode].balance;
     newGraph.nodes[sinkNode].balance = 0;
   }
-  return { newGraph, supersource, supersink };
-};
-
-const removeSuperSourceAndSink = (
-  graph: Graph,
-  supersource: number,
-  supersink: number
-) => {
-  const newGraph: Graph = structuredClone(graph);
-
-  // Remove edges connected to the supersource and supersink
-  newGraph.nodes = newGraph.nodes.map((node) => {
+  const { flowGraph } = edmondsKarp(newGraph, supersource, supersink);
+  flowGraph.nodes = flowGraph.nodes.map((node) => {
     node.edges = node.edges.filter(
       (edge) => edge.from !== supersource && edge.to !== supersink
     );
     return node;
   });
-
-  // Remove the supersource and supersink nodes
-  newGraph.nodes.splice(supersource, 1);
-  newGraph.nodes.splice(supersink - 1, 1); // Subtract 1 because the array size has decreased
-
-  newGraph.size -= 2; // Subtracting 2 for the supersource and supersink
-
-  return newGraph;
-};
-
-const generateMaxFlow = (graph: Graph) => {
-  const { newGraph, supersink, supersource } = addSuperSourceAndSink(graph);
-  console.log(newGraph);
-  const { maxFlow, flowGraph } = edmondsKarp(newGraph, supersource, supersink);
-  const originalGraphWithFlow = removeSuperSourceAndSink(
-    flowGraph,
-    supersource,
-    supersink
-  );
-  return { maxFlow, originalGraphWithFlow };
+  flowGraph.nodes.splice(supersource, 1);
+  flowGraph.nodes.splice(supersink - 1, 1);
+  flowGraph.size -= 2;
+  return { flowGraph };
 };
 
 const logTime = (text: string, start: number, end: number) => {
