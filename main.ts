@@ -15,47 +15,49 @@ import {
 import { generateMaxFlow, logWeight } from "./utilities.ts";
 
 while (true) {
-  const directed = await Toggle.prompt("Is the graph directed?");
-  const balanced = await Toggle.prompt("Is the graph balanced?");
+  // const directed = await Toggle.prompt("Is the graph directed?");
+  // const balanced = await Toggle.prompt("Is the graph balanced?");
   const graph = new Graph(
-    await Input.prompt({
-      message: "Choose a graph",
-      suggestions: [
-        "1",
-        "2",
-        "3",
-        "Fluss",
-        "Fluss2",
-        "gross",
-        "ganzGross",
-        "ganzGanzGross",
-        "G_1_2",
-        "G_1_20",
-        "G_1_200",
-        "G_10_20",
-        "G_10_200",
-        "G_100_200",
-        "K_10",
-        "K_10e",
-        "K_12",
-        "K_12e",
-        "K_15",
-        "K_15e",
-        "K_20",
-        "K_30",
-        "K_50",
-        "K_70",
-        "K_100",
-        "Kostenminimal1",
-        "Wege1",
-        "Wege2",
-        "Wege3",
-      ],
-    }),
-    directed,
-    balanced
+    // await Input.prompt({
+    //   message: "Choose a graph",
+    //   suggestions: [
+    //     "1",
+    //     "2",
+    //     "3",
+    //     "Fluss",
+    //     "Fluss2",
+    //     "gross",
+    //     "ganzGross",
+    //     "ganzGanzGross",
+    //     "G_1_2",
+    //     "G_1_20",
+    //     "G_1_200",
+    //     "G_10_20",
+    //     "G_10_200",
+    //     "G_100_200",
+    //     "K_10",
+    //     "K_10e",
+    //     "K_12",
+    //     "K_12e",
+    //     "K_15",
+    //     "K_15e",
+    //     "K_20",
+    //     "K_30",
+    //     "K_50",
+    //     "K_70",
+    //     "K_100",
+    //     "Kostenminimal1",
+    //     "Wege1",
+    //     "Wege2",
+    //     "Wege3",
+    //   ],
+    // }),
+    "Kostenminimal1",
+    true,
+    true
   );
   while (true) {
+    generateMaxFlow(graph);
     const command = await Select.prompt({
       message: "What do you want to see?",
       options: [
@@ -73,7 +75,6 @@ while (true) {
         { name: "Exit", value: "exit" },
       ],
     });
-    console.log(generateMaxFlow(graph).originalGraphWithFlow);
     switch (command) {
       case "graph":
         console.log(graph);
@@ -136,7 +137,7 @@ while (true) {
         });
         console.log(
           `The max flow from ${source} to ${sink} is ${colors.cyan(
-            edmondsKarp(graph, +source, +sink).maxFlow.toFixed(2)
+            edmondsKarp(graph, +source, +sink).toFixed(2)
           )}`
         );
       }

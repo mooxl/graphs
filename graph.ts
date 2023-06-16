@@ -32,7 +32,6 @@ export class Graph {
           flow: 0,
         });
     }
-    console.log(this.nodes);
     logTime("Graph built in", start, performance.now());
   }
 }

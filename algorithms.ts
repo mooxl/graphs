@@ -293,8 +293,8 @@ const edmondsKarp = (graph: Graph, source: number, sink: number) => {
         newGraph.nodes[v].edges.push({
           from: v,
           to: u,
-          weight: pathFlow,
-          capacity: 0,
+          weight: 0,
+          capacity: pathFlow,
           flow: -pathFlow,
         }); // Adding the flow on the new edge
       }

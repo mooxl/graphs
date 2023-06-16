@@ -89,6 +89,7 @@ const bfs = (
   const queue: number[] = [];
   queue.push(start);
   visited[start] = 1;
+  let counter = 0;
   while (queue.length) {
     const node = queue.shift()!;
     for (const edge of graph.nodes[node].edges) {
@@ -96,7 +97,9 @@ const bfs = (
         queue.push(edge.to);
         visited[edge.to] = 1;
         parents[edge.to] = node;
-        if (edge.to === end) return true;
+        counter++;
+        console.log(counter);
+        if (edge.to === end || counter === 10) return true;
       }
     }
   }
@@ -106,7 +109,7 @@ const bfs = (
 const residualCapacity = (graph: Graph, from: number, to: number) => {
   for (const edge of graph.nodes[from].edges) {
     if (edge.to === to) {
-      return edge.weight;
+      return edge.capacity;
     }
   }
   return 0;
@@ -114,50 +117,42 @@ const residualCapacity = (graph: Graph, from: number, to: number) => {
 
 const addSuperSourceAndSink = (graph: Graph) => {
   const newGraph: Graph = structuredClone(graph);
-  newGraph.size += 2; // Adding 2 for the supersource and supersink
-
-  // Add supersource and supersink nodes
-  newGraph.nodes.push({ balance: 0, edges: [] }); // supersource
-  newGraph.nodes.push({ balance: 0, edges: [] }); // supersink
-
-  // The supersource and supersink indices
+  newGraph.size += 2;
+  newGraph.nodes.push({ balance: 0, edges: [] });
+  newGraph.nodes.push({ balance: 0, edges: [] });
   const supersource = newGraph.size - 2;
   const supersink = newGraph.size - 1;
-
-  // Find source nodes (nodes with positive balance)
   const sourceNodes = [];
   const sinkNodes = [];
   for (let i = 0; i < newGraph.size - 2; i++) {
-    // Subtract 2 to avoid the newly added nodes
     if (newGraph.nodes[i].balance > 0) {
       sourceNodes.push(i);
     } else if (newGraph.nodes[i].balance < 0) {
       sinkNodes.push(i);
     }
   }
-
-  // Connect the supersource to each source node with weight as the node's balance
   for (const sourceNode of sourceNodes) {
     newGraph.nodes[supersource].edges.push({
       from: supersource,
       to: sourceNode,
-      weight: newGraph.nodes[sourceNode].balance,
+      weight: 0,
       capacity: newGraph.nodes[sourceNode].balance,
-      flow: 0,
+      flow: newGraph.nodes[sourceNode].balance,
     });
+    newGraph.nodes[supersource].balance += newGraph.nodes[sourceNode].balance;
+    newGraph.nodes[sourceNode].balance = 0;
   }
-
-  // Connect each sink node to the supersink with weight as the absolute value of the node's balance
   for (const sinkNode of sinkNodes) {
     newGraph.nodes[sinkNode].edges.push({
       from: sinkNode,
       to: supersink,
-      weight: Math.abs(newGraph.nodes[sinkNode].balance),
+      weight: 0,
       capacity: Math.abs(newGraph.nodes[sinkNode].balance),
-      flow: 0,
+      flow: Math.abs(newGraph.nodes[sinkNode].balance),
     });
+    newGraph.nodes[supersink].balance += newGraph.nodes[sinkNode].balance;
+    newGraph.nodes[sinkNode].balance = 0;
   }
-
   return { newGraph, supersource, supersink };
 };
 
@@ -187,6 +182,7 @@ const removeSuperSourceAndSink = (
 
 const generateMaxFlow = (graph: Graph) => {
   const { newGraph, supersink, supersource } = addSuperSourceAndSink(graph);
+  console.log(newGraph);
   const { maxFlow, flowGraph } = edmondsKarp(newGraph, supersource, supersink);
   const originalGraphWithFlow = removeSuperSourceAndSink(
     flowGraph,
