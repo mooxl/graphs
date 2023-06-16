@@ -89,7 +89,6 @@ const bfs = (
   const queue: number[] = [];
   queue.push(start);
   visited[start] = 1;
-  let counter = 0;
   while (queue.length) {
     const node = queue.shift()!;
     for (const edge of graph.nodes[node].edges) {
@@ -97,9 +96,7 @@ const bfs = (
         queue.push(edge.to);
         visited[edge.to] = 1;
         parents[edge.to] = node;
-        counter++;
-        console.log(counter);
-        if (edge.to === end || counter === 10) return true;
+        if (edge.to === end) return true;
       }
     }
   }
