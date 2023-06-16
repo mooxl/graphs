@@ -54,7 +54,7 @@ while (true) {
     //     "Wege3",
     //   ],
     // }),
-    "Kostenminimal1",
+    "Kostenminimal4",
     true,
     true
   );

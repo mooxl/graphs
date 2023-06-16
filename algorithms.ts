@@ -351,7 +351,6 @@ const cycleCanceling = (graph: Graph) => {
     if (!negative) {
       break;
     }
-
     let minResidual = Infinity;
     for (let i = 0; i < nodes.length - 1; i++) {
       const from = nodes[i];
@@ -363,7 +362,6 @@ const cycleCanceling = (graph: Graph) => {
         minResidual = edge.capacity;
       }
     }
-
     for (let i = 0; i < nodes.length - 1; i++) {
       const from = nodes[i];
       const to = nodes[i + 1];
@@ -384,21 +382,198 @@ const cycleCanceling = (graph: Graph) => {
         reverseEdge.flow -= minResidual;
       }
     }
-
     let totalCost = 0;
     for (let i = 0; i < flowGraph.size; i++) {
       for (const edge of flowGraph.nodes[i].edges) {
         totalCost += edge.flow * edge.weight;
       }
     }
-
     if (totalCost >= previousTotalCost) {
       break;
     }
-
     previousTotalCost = totalCost;
   }
   return previousTotalCost;
+};
+
+const successiveShortestPath = (graph: Graph) => {
+  initializeFlow(graph);
+  const { sources, sinks } = findSourcesAndSinks(graph);
+  const potential = new Array(graph.size).fill(0);
+  while (true) {
+    let foundPath = false;
+    for (const source of sources) {
+      for (const sink of sinks) {
+        const path = shortestPath(graph, source, sink, potential);
+        if (path.length > 0) {
+          foundPath = true;
+          updateFlowAndBalances(graph, path);
+          if (graph.nodes[source].balance === 0) {
+            sources.splice(sources.indexOf(source), 1);
+          }
+          if (graph.nodes[sink].balance === 0) {
+            sinks.splice(sinks.indexOf(sink), 1);
+          }
+          break;
+        }
+      }
+      if (foundPath) {
+        break;
+      }
+    }
+    if (!foundPath) {
+      break;
+    }
+  }
+
+  const totalCost = calculateTotalCost(graph);
+  return { totalCost };
+};
+
+const initializeFlow = (graph: Graph) => {
+  for (const node of graph.nodes) {
+    for (const edge of node.edges) {
+      if (edge.weight < 0) {
+        edge.flow = edge.capacity;
+        graph.nodes[edge.from].balance -= edge.flow;
+        graph.nodes[edge.to].balance += edge.flow;
+      } else {
+        edge.flow = 0;
+      }
+    }
+  }
+};
+
+const findSourcesAndSinks = (graph: Graph) => {
+  const sources: number[] = [];
+  const sinks: number[] = [];
+  for (let i = 0; i < graph.size; i++) {
+    const node = graph.nodes[i];
+    const balance = node.balance;
+    if (balance > 0) {
+      sources.push(i);
+    } else if (balance < 0) {
+      sinks.push(i);
+    }
+  }
+  return { sources, sinks };
+};
+
+const shortestPath = (
+  graph: Graph,
+  source: number,
+  sink: number,
+  potential: number[]
+) => {
+  const dist = new Array(graph.size).fill(Infinity);
+  const prev: Edge[] = new Array(graph.size);
+  dist[source] = 0;
+  const pq = new BinaryHeap(
+    (
+      a: { value: number; priority: number },
+      b: { value: number; priority: number }
+    ) => a.priority - b.priority
+  );
+  pq.push({ value: source, priority: 0 });
+  while (!pq.isEmpty()) {
+    const current = pq.pop()!;
+    const currentNode = current.value;
+    const currentDist = current.priority;
+    if (currentNode === sink) {
+      break;
+    }
+    if (currentDist > dist[currentNode]) {
+      continue;
+    }
+    for (const edge of graph.nodes[currentNode].edges) {
+      if (edge.capacity > edge.flow) {
+        const newDist =
+          dist[edge.from] +
+          edge.weight +
+          potential[edge.from] -
+          potential[edge.to];
+        const neighbor = edge.to;
+        if (newDist < dist[neighbor]) {
+          dist[neighbor] = newDist;
+          prev[neighbor] = edge;
+          pq.push({ value: neighbor, priority: newDist });
+        }
+      }
+      const reverseEdge = graph.nodes[edge.to].edges.find(
+        (e) => e.to === edge.from
+      );
+      if (reverseEdge && reverseEdge.flow > 0) {
+        const newDist =
+          dist[edge.to] -
+          edge.weight +
+          potential[edge.to] -
+          potential[edge.from];
+        const neighbor = edge.from;
+        if (newDist < dist[neighbor]) {
+          dist[neighbor] = newDist;
+          prev[neighbor] = reverseEdge;
+          pq.push({ value: neighbor, priority: newDist });
+        }
+      }
+    }
+  }
+  for (let i = 0; i < graph.size; i++) {
+    if (dist[i] < Infinity) {
+      potential[i] += dist[i];
+    }
+  }
+  const path: Edge[] = [];
+  let edge = prev[sink];
+  while (edge) {
+    path.unshift(edge);
+    edge = prev[edge.from];
+  }
+  return path;
+};
+
+const updateFlowAndBalances = (graph: Graph, path: Edge[]) => {
+  const minFlow = path.reduce(
+    (min, edge) => Math.min(min, edge.capacity - edge.flow),
+    Infinity
+  );
+  if (minFlow > 0) {
+    for (const edge of path) {
+      if (edge.capacity > edge.flow) {
+        edge.flow += minFlow;
+        const reverseEdge = graph.nodes[edge.to].edges.find(
+          (e) => e.to === edge.from
+        );
+        if (reverseEdge) {
+          reverseEdge.flow -= minFlow;
+        } else {
+          graph.nodes[edge.to].edges.push({
+            from: edge.to,
+            to: edge.from,
+            weight: -edge.weight,
+            capacity: edge.capacity,
+            flow: -minFlow,
+          });
+        }
+      }
+    }
+    const source = path[0].from;
+    const sink = path[path.length - 1].to;
+    graph.nodes[source].balance -= minFlow;
+    graph.nodes[sink].balance -= minFlow;
+  }
+};
+
+const calculateTotalCost = (graph: Graph) => {
+  let totalCost = 0;
+  for (const node of graph.nodes) {
+    for (const edge of node.edges) {
+      if (edge.flow > 0) {
+        totalCost += edge.flow * edge.weight;
+      }
+    }
+  }
+
+  return totalCost;
 };
 
 export {
@@ -412,5 +587,6 @@ export {
   bellmanFord,
   edmondsKarp,
   dijkstra,
+  successiveShortestPath,
   cycleCanceling,
 };
