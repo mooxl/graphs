@@ -54,12 +54,12 @@ while (true) {
     //     "Wege3",
     //   ],
     // }),
-    "Kostenminimal4",
+    "Kostenminimal1",
     true,
     true
   );
   while (true) {
-    console.log(successiveShortestPath(graph));
+    console.log(cycleCanceling(graph));
     const command = await Select.prompt({
       message: "What do you want to see?",
       options: [

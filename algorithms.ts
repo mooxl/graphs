@@ -427,7 +427,7 @@ const successiveShortestPath = (graph: Graph) => {
   }
 
   const totalCost = calculateTotalCost(graph);
-  return { totalCost };
+  return totalCost;
 };
 
 const initializeFlow = (graph: Graph) => {
@@ -538,28 +538,26 @@ const updateFlowAndBalances = (graph: Graph, path: Edge[]) => {
   );
   if (minFlow > 0) {
     for (const edge of path) {
-      if (edge.capacity > edge.flow) {
-        edge.flow += minFlow;
-        const reverseEdge = graph.nodes[edge.to].edges.find(
-          (e) => e.to === edge.from
-        );
-        if (reverseEdge) {
-          reverseEdge.flow -= minFlow;
-        } else {
-          graph.nodes[edge.to].edges.push({
-            from: edge.to,
-            to: edge.from,
-            weight: -edge.weight,
-            capacity: edge.capacity,
-            flow: -minFlow,
-          });
-        }
+      edge.flow += minFlow;
+      const reverseEdge = graph.nodes[edge.to].edges.find(
+        (e) => e.to === edge.from
+      );
+      if (reverseEdge) {
+        reverseEdge.flow -= minFlow;
+      } else {
+        graph.nodes[edge.to].edges.push({
+          from: edge.to,
+          to: edge.from,
+          weight: -edge.weight,
+          capacity: minFlow,
+          flow: 0,
+        });
       }
     }
     const source = path[0].from;
     const sink = path[path.length - 1].to;
     graph.nodes[source].balance -= minFlow;
-    graph.nodes[sink].balance -= minFlow;
+    graph.nodes[sink].balance += minFlow; // Korrektur hier
   }
 };
 
