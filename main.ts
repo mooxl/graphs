@@ -46,6 +46,7 @@ while (true) {
         "K_50",
         "K_70",
         "K_100",
+        "Kostenminimal1",
         "Wege1",
         "Wege2",
         "Wege3",
@@ -58,6 +59,7 @@ while (true) {
     const command = await Select.prompt({
       message: "What do you want to see?",
       options: [
+        { name: "Graph", value: "graph" },
         { name: "Size of subgraphs", value: "subgraphsSize" },
         { name: "Weight of MST via Prim", value: "primWeight" },
         { name: "Weight of MST via Kruskal", value: "kruskalWeight" },
@@ -72,6 +74,9 @@ while (true) {
       ],
     });
     switch (command) {
+      case "graph":
+        console.log(graph);
+        break;
       case "subgraphsSize":
         console.log(
           `The graph has ${colors.cyan(

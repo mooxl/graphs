@@ -270,6 +270,7 @@ const edmondsKarp = (graph: Graph, source: number, sink: number) => {
     maxFlow += pathFlow;
   }
   logTime("Edmonds-Karp finished in", start, performance.now());
+  console.log(newGraph);
   return maxFlow;
 };
 

@@ -19,9 +19,12 @@ export class Graph {
       });
     }
     for (const line of lines) {
-      const [from, to, weight] = line.split("\t").map((value) => +value);
-      this.nodes[from].edges.push({ from, to, weight });
-      !directed && this.nodes[to]!.edges.push({ from: to, to: from, weight });
+      const [from, to, weight, capacity] = line
+        .split("\t")
+        .map((value) => +value);
+      this.nodes[from].edges.push({ from, to, weight, capacity });
+      !directed &&
+        this.nodes[to]!.edges.push({ from: to, to: from, weight, capacity });
     }
     console.log(this.nodes);
     logTime("Graph built in", start, performance.now());
