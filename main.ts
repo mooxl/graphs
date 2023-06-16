@@ -1,7 +1,6 @@
 import { Input, Select, Toggle, colors } from "cliffy";
 import { Graph } from "./graph.ts";
 import {
-  bellmanFord,
   branchAndBound,
   bruteForce,
   cycleCanceling,
@@ -17,46 +16,51 @@ import {
 import { logWeight } from "./utilities.ts";
 
 while (true) {
-  // const directed = await Toggle.prompt("Is the graph directed?");
-  // const balanced = await Toggle.prompt("Is the graph balanced?");
+  const directed = await Toggle.prompt("Is the graph directed?");
+  const balanced = await Toggle.prompt("Is the graph balanced?");
   const graph = new Graph(
-    // await Input.prompt({
-    //   message: "Choose a graph",
-    //   suggestions: [
-    //     "1",
-    //     "2",
-    //     "3",
-    //     "Fluss",
-    //     "Fluss2",
-    //     "gross",
-    //     "ganzGross",
-    //     "ganzGanzGross",
-    //     "G_1_2",
-    //     "G_1_20",
-    //     "G_1_200",
-    //     "G_10_20",
-    //     "G_10_200",
-    //     "G_100_200",
-    //     "K_10",
-    //     "K_10e",
-    //     "K_12",
-    //     "K_12e",
-    //     "K_15",
-    //     "K_15e",
-    //     "K_20",
-    //     "K_30",
-    //     "K_50",
-    //     "K_70",
-    //     "K_100",
-    //     "Kostenminimal1",
-    //     "Wege1",
-    //     "Wege2",
-    //     "Wege3",
-    //   ],
-    // }),
-    "Kostenminimal1",
-    true,
-    true
+    await Input.prompt({
+      message: "Choose a graph",
+      suggestions: [
+        "1",
+        "2",
+        "3",
+        "Fluss",
+        "Fluss2",
+        "gross",
+        "ganzGross",
+        "ganzGanzGross",
+        "G_1_2",
+        "G_1_20",
+        "G_1_200",
+        "G_10_20",
+        "G_10_200",
+        "G_100_200",
+        "K_10",
+        "K_10e",
+        "K_12",
+        "K_12e",
+        "K_15",
+        "K_15e",
+        "K_20",
+        "K_30",
+        "K_50",
+        "K_70",
+        "K_100",
+        "Kostenminimal1",
+        "Kostenminimal2",
+        "Kostenminimal3",
+        "Kostenminimal4",
+        "Kostenminimal_gross1",
+        "Kostenminimal_gross2",
+        "Kostenminimal_gross3",
+        "Wege1",
+        "Wege2",
+        "Wege3",
+      ],
+    }),
+    directed,
+    balanced
   );
   while (true) {
     const command = await Select.prompt({
