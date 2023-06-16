@@ -160,7 +160,49 @@ const generateMaxFlow = (graph: Graph) => {
   flowGraph.nodes.splice(supersource, 1);
   flowGraph.nodes.splice(supersink - 1, 1);
   flowGraph.size -= 2;
-  return { flowGraph };
+  return { flowGraph, supersource, supersink };
+};
+const generateMaxFlowWithSuper = (graph: Graph) => {
+  const newGraph: Graph = structuredClone(graph);
+  newGraph.size += 2;
+  newGraph.nodes.push({ balance: 0, edges: [] });
+  newGraph.nodes.push({ balance: 0, edges: [] });
+  const supersource = newGraph.size - 2;
+  const supersink = newGraph.size - 1;
+  const sourceNodes = [];
+  const sinkNodes = [];
+  for (let i = 0; i < newGraph.size - 2; i++) {
+    if (newGraph.nodes[i].balance > 0) {
+      sourceNodes.push(i);
+    } else if (newGraph.nodes[i].balance < 0) {
+      sinkNodes.push(i);
+    }
+  }
+  for (const sourceNode of sourceNodes) {
+    newGraph.nodes[supersource].edges.push({
+      from: supersource,
+      to: sourceNode,
+      weight: 0,
+      capacity: newGraph.nodes[sourceNode].balance,
+      flow: 0,
+    });
+    newGraph.nodes[supersource].balance += newGraph.nodes[sourceNode].balance;
+    newGraph.nodes[sourceNode].balance = 0;
+  }
+  for (const sinkNode of sinkNodes) {
+    newGraph.nodes[sinkNode].edges.push({
+      from: sinkNode,
+      to: supersink,
+      weight: 0,
+      capacity: Math.abs(newGraph.nodes[sinkNode].balance),
+      flow: 0,
+    });
+    newGraph.nodes[supersink].balance += newGraph.nodes[sinkNode].balance;
+    newGraph.nodes[sinkNode].balance = 0;
+  }
+  const { flowGraph } = edmondsKarp(newGraph, supersource, supersink);
+
+  return { flowGraph, supersource, supersink };
 };
 
 const generateResidualGraph = (graph: Graph) => {
@@ -234,4 +276,5 @@ export {
   generateResidualGraph,
   logWeight,
   generateMaxFlow,
+  generateMaxFlowWithSuper,
 };

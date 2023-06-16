@@ -13,6 +13,7 @@ import {
   residualCapacity,
   generateMaxFlow,
   generateResidualGraph,
+  generateMaxFlowWithSuper,
 } from "./utilities.ts";
 
 const subGraphs = (graph: Graph) => {
@@ -207,6 +208,7 @@ const branchAndBound = (graph: Graph) => {
 const dijkstra = (graph: Graph, startNode: number) => {
   const start = performance.now();
   const distances = Array(graph.size).fill(Infinity);
+  const predecessors = Array(graph.size).fill(-1);
   distances[startNode] = 0;
   const visited = new Uint8Array(graph.size);
   const heap = new BinaryHeap<Edge>((a: Edge, b: Edge) => a.weight - b.weight);
@@ -217,6 +219,7 @@ const dijkstra = (graph: Graph, startNode: number) => {
     capacity: 0,
     flow: 0,
   });
+
   while (!heap.isEmpty()) {
     const { to } = heap.pop()!;
     if (visited[to]) continue;
@@ -226,6 +229,7 @@ const dijkstra = (graph: Graph, startNode: number) => {
         const newDistance = distances[to] + neighbor.weight;
         if (newDistance < distances[neighbor.to]) {
           distances[neighbor.to] = newDistance;
+          predecessors[neighbor.to] = to;
           heap.push({
             from: to,
             to: neighbor.to,
@@ -237,8 +241,9 @@ const dijkstra = (graph: Graph, startNode: number) => {
       }
     }
   }
+
   logTime("Dijkstra finished in", start, performance.now());
-  return distances;
+  return { distances, predecessors };
 };
 
 const bellmanFord = (graph: Graph, startNode: number) => {
@@ -393,7 +398,6 @@ const cycleCanceling = (graph: Graph) => {
 
     previousTotalCost = totalCost;
   }
-  console.log(flowGraph);
   return previousTotalCost;
 };
 
@@ -405,8 +409,8 @@ export {
   doubleTree,
   bruteForce,
   branchAndBound,
-  dijkstra,
   bellmanFord,
   edmondsKarp,
+  dijkstra,
   cycleCanceling,
 };

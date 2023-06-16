@@ -12,6 +12,7 @@ import {
   nearestNeighbour,
   prim,
   subGraphs,
+  successiveShortestPath,
 } from "./algorithms.ts";
 import { logWeight } from "./utilities.ts";
 
@@ -58,7 +59,7 @@ while (true) {
     true
   );
   while (true) {
-    console.log(cycleCanceling(graph));
+    console.log(successiveShortestPath(graph));
     const command = await Select.prompt({
       message: "What do you want to see?",
       options: [
