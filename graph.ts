@@ -22,9 +22,15 @@ export class Graph {
       const [from, to, weight, capacity] = line
         .split("\t")
         .map((value) => +value);
-      this.nodes[from].edges.push({ from, to, weight, capacity });
+      this.nodes[from].edges.push({ from, to, weight, capacity, flow: 0 });
       !directed &&
-        this.nodes[to]!.edges.push({ from: to, to: from, weight, capacity });
+        this.nodes[to]!.edges.push({
+          from: to,
+          to: from,
+          weight,
+          capacity,
+          flow: 0,
+        });
     }
     console.log(this.nodes);
     logTime("Graph built in", start, performance.now());
