@@ -59,7 +59,6 @@ while (true) {
     true
   );
   while (true) {
-    console.log(cycleCanceling(graph));
     const command = await Select.prompt({
       message: "What do you want to see?",
       options: [
@@ -74,6 +73,11 @@ while (true) {
         { name: "Shortest Path via Dijkstra", value: "dijkstra" },
         { name: "Shortest Path via Bellman-Ford", value: "bellmanFord" },
         { name: "Max Flow via Edmonds-Karp", value: "edmondsKarp" },
+        { name: "Min Cost via Cycle Canceling", value: "cycleCanceling" },
+        {
+          name: "Min Cost via Successive Shortest Path",
+          value: "successiveShortestPath",
+        },
         { name: "Exit", value: "exit" },
       ],
     });
@@ -112,7 +116,6 @@ while (true) {
         break;
       case "bellmanFord":
       case "dijkstra": {
-        const chosenFunction = command === "dijkstra" ? dijkstra : bellmanFord;
         const startNode = await Input.prompt({
           message: "Choose a start node",
           default: "0",
@@ -123,7 +126,7 @@ while (true) {
         });
         console.log(
           `The shortest paths from ${startNode} to ${endNode} is ${colors.cyan(
-            chosenFunction(graph, +startNode)[+endNode].toFixed(2)
+            dijkstra(graph, +startNode).distances[+endNode].toFixed(2)
           )}`
         );
         break;
@@ -142,6 +145,21 @@ while (true) {
             edmondsKarp(graph, +source, +sink).maxFlow.toFixed(2)
           )}`
         );
+        break;
+      }
+      case "cycleCanceling": {
+        console.log(
+          `The min cost is ${colors.cyan(cycleCanceling(graph).toFixed(2))}`
+        );
+        break;
+      }
+      case "successiveShortestPath": {
+        console.log(
+          `The min cost is ${colors.cyan(
+            successiveShortestPath(graph).toFixed(2)
+          )}`
+        );
+        break;
       }
     }
     if (command === "exit") {
