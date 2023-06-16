@@ -58,7 +58,7 @@ while (true) {
     true
   );
   while (true) {
-    console.log(cycleCanceling(graph).flowGraph);
+    console.log(cycleCanceling(graph));
     const command = await Select.prompt({
       message: "What do you want to see?",
       options: [

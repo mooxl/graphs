@@ -12,6 +12,7 @@ import {
   bfs,
   residualCapacity,
   generateMaxFlow,
+  generateResidualGraph,
 } from "./utilities.ts";
 
 const subGraphs = (graph: Graph) => {
@@ -337,62 +338,19 @@ const edmondsKarp = (graph: Graph, source: number, sink: number) => {
 };
 
 const cycleCanceling = (graph: Graph) => {
-  // Generate an initial b-flow.
   const { flowGraph } = generateMaxFlow(graph);
-
+  let previousTotalCost = Infinity;
   while (true) {
-    // Generate the residual graph.
-    const residualGraph: Graph = structuredClone(flowGraph);
-    for (let i = 0; i < flowGraph.size; i++) {
-      for (const edge of flowGraph.nodes[i].edges) {
-        // Add the residual capacity of the edge to the residual graph.
-        const residualEdge = residualGraph.nodes[edge.from].edges.find(
-          (e) => e.to === edge.to
-        );
-        if (residualEdge) {
-          residualEdge.capacity = edge.capacity - edge.flow;
-        } else {
-          residualGraph.nodes[edge.from].edges.push({
-            from: edge.from,
-            to: edge.to,
-            weight: edge.weight,
-            capacity: edge.capacity - edge.flow,
-            flow: 0,
-          });
-        }
-
-        // Add the reverse edge to the residual graph with flow as capacity.
-        const reverseEdge = residualGraph.nodes[edge.to].edges.find(
-          (e) => e.to === edge.from
-        );
-        if (reverseEdge) {
-          reverseEdge.capacity = edge.flow;
-        } else {
-          residualGraph.nodes[edge.to].edges.push({
-            from: edge.to,
-            to: edge.from,
-            weight: -edge.weight,
-            capacity: edge.flow,
-            flow: 0,
-          });
-        }
-      }
-    }
-    console.log(residualGraph);
-    // Find a negative cycle using Bellman-Ford on the residual graph.
+    const residualGraph = generateResidualGraph(flowGraph);
     const { nodes, negative } = bellmanFord(residualGraph, 0);
-
-    // If no negative cycle was found, we are done.
     if (!negative) {
       break;
     }
 
-    // Find the minimum residual capacity over the edges of the cycle.
     let minResidual = Infinity;
     for (let i = 0; i < nodes.length - 1; i++) {
       const from = nodes[i];
       const to = nodes[i + 1];
-
       const edge = residualGraph.nodes[from].edges.find(
         (edge) => edge.to === to
       )!;
@@ -401,15 +359,19 @@ const cycleCanceling = (graph: Graph) => {
       }
     }
 
-    // Augment the flow along the cycle in the original graph.
     for (let i = 0; i < nodes.length - 1; i++) {
       const from = nodes[i];
       const to = nodes[i + 1];
-
-      const edge = flowGraph.nodes[from].edges.find((edge) => edge.to === to)!;
-      edge.flow += minResidual;
-
-      // Decrease the flow of the reverse edge if it exists.
+      const edge = flowGraph.nodes[from].edges.find((edge) => edge.to === to);
+      if (edge) {
+        edge.flow += minResidual;
+        const reverseEdge = flowGraph.nodes[to].edges.find(
+          (edge) => edge.to === from
+        );
+        if (reverseEdge) {
+          reverseEdge.flow -= minResidual;
+        }
+      }
       const reverseEdge = flowGraph.nodes[to].edges.find(
         (edge) => edge.to === from
       );
@@ -417,9 +379,22 @@ const cycleCanceling = (graph: Graph) => {
         reverseEdge.flow -= minResidual;
       }
     }
-  }
 
-  return { flowGraph };
+    let totalCost = 0;
+    for (let i = 0; i < flowGraph.size; i++) {
+      for (const edge of flowGraph.nodes[i].edges) {
+        totalCost += edge.flow * edge.weight;
+      }
+    }
+
+    if (totalCost >= previousTotalCost) {
+      break;
+    }
+
+    previousTotalCost = totalCost;
+  }
+  console.log(flowGraph);
+  return previousTotalCost;
 };
 
 export {

@@ -163,6 +163,50 @@ const generateMaxFlow = (graph: Graph) => {
   return { flowGraph };
 };
 
+const generateResidualGraph = (graph: Graph) => {
+  const residualGraph: Graph = structuredClone(graph);
+
+  for (let i = 0; i < graph.size; i++) {
+    for (const edge of graph.nodes[i].edges) {
+      // Add the residual capacity of the edge to the residual graph.
+      const residualEdge = residualGraph.nodes[edge.from].edges.find(
+        (e) => e.to === edge.to
+      );
+
+      if (residualEdge) {
+        residualEdge.capacity = edge.capacity - edge.flow;
+      } else {
+        residualGraph.nodes[edge.from].edges.push({
+          from: edge.from,
+          to: edge.to,
+          weight: edge.weight,
+          capacity: edge.capacity - edge.flow,
+          flow: 0,
+        });
+      }
+
+      // Add the reverse edge to the residual graph with flow as capacity.
+      const reverseEdge = residualGraph.nodes[edge.to].edges.find(
+        (e) => e.to === edge.from
+      );
+
+      if (reverseEdge) {
+        reverseEdge.capacity = edge.flow;
+      } else {
+        residualGraph.nodes[edge.to].edges.push({
+          from: edge.to,
+          to: edge.from,
+          weight: -edge.weight,
+          capacity: edge.flow,
+          flow: 0,
+        });
+      }
+    }
+  }
+
+  return residualGraph;
+};
+
 const logTime = (text: string, start: number, end: number) => {
   console.log(
     `${text} ${colors.magenta(format(end - start, { ignoreZero: true }))}`
@@ -187,6 +231,7 @@ export {
   getTourWeight,
   bfs,
   residualCapacity,
+  generateResidualGraph,
   logWeight,
   generateMaxFlow,
 };
