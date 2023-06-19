@@ -38,7 +38,7 @@ const prim = (graph: Graph) => {
     if (!visited[edge.to]) {
       visited[edge.to] = 1;
       mst.push(edge);
-      for (const neighbor of graph.nodes[edge.to]) {
+      for (const neighbor of graph.nodes[edge.to].edges) {
         if (!visited[neighbor.to]) {
           heap.push(neighbor);
         }
@@ -55,7 +55,7 @@ const kruskal = (graph: Graph) => {
   const setId = Array.from({ length: graph.size }, (_, i) => i);
   const heap = new BinaryHeap<Edge>((a: Edge, b: Edge) => a.weight - b.weight);
   for (const nodes of graph.nodes) {
-    heap.push(...nodes);
+    heap.push(...nodes.edges);
   }
   while (!heap.isEmpty()) {
     const edge = heap.pop()!;
@@ -79,7 +79,7 @@ const nearestNeighbour = (graph: Graph) => {
   for (let i = 1; i < graph.size; i++) {
     let nextEdge: Edge | null = null;
     let minWeight = Infinity;
-    for (const edge of graph.nodes[currentNode]) {
+    for (const edge of graph.nodes[currentNode].edges) {
       if (!visited[edge.to] && edge.weight < minWeight) {
         minWeight = edge.weight;
         nextEdge = edge;
@@ -91,7 +91,7 @@ const nearestNeighbour = (graph: Graph) => {
       currentNode = nextEdge.to;
     }
   }
-  for (const edge of graph.nodes[currentNode]) {
+  for (const edge of graph.nodes[currentNode].edges) {
     if (edge.to === 0) {
       path.push(edge);
       break;
@@ -120,7 +120,7 @@ const doubleTree = (graph: Graph) => {
       currentNode = edge.to;
     }
   }
-  for (const edge of graph.nodes[currentNode]) {
+  for (const edge of graph.nodes[currentNode].edges) {
     if (edge.to === 0) {
       path.push(edge);
       break;
@@ -140,7 +140,7 @@ const bruteForce = (graph: Graph) => {
     const path = [nodes[0], ...perm, nodes[0]];
     let cost = 0;
     for (let i = 0; i < path.length - 1; i++) {
-      const edge = graph.nodes[path[i]].find(
+      const edge = graph.nodes[path[i]].edges.find(
         (edge: Edge) => edge.to === path[i + 1]
       )!;
       cost += edge.weight;
@@ -152,7 +152,7 @@ const bruteForce = (graph: Graph) => {
           from: n,
           to: path[i + 1],
           weight:
-            graph.nodes[n].find((edge: Edge) => edge.to === path[i + 1])
+            graph.nodes[n].edges.find((edge: Edge) => edge.to === path[i + 1])
               ?.weight || 0,
         }))
         .slice(0, -1);
@@ -179,7 +179,7 @@ const branchAndBound = (graph: Graph) => {
         bestTourWeight = tourWeight;
       }
     } else {
-      for (const edge of graph.nodes[path[path.length - 1]]) {
+      for (const edge of graph.nodes[path[path.length - 1]].edges) {
         if (!path.includes(edge.to)) {
           const newPath = path.concat(edge.to);
           const newLowerBound = lowerBound + edge.weight;
@@ -205,7 +205,7 @@ const dijkstra = (graph: Graph, startNode: number) => {
     const { to } = heap.pop()!;
     if (visited[to]) continue;
     visited[to] = 1;
-    for (const neighbor of graph.nodes[to]) {
+    for (const neighbor of graph.nodes[to].edges) {
       if (!visited[neighbor.to]) {
         const newDistance = distances[to] + neighbor.weight;
         if (newDistance < distances[neighbor.to]) {
@@ -225,7 +225,7 @@ const bellmanFord = (graph: Graph, startNode: number) => {
   distances[startNode] = 0;
   for (let i = 0; i < graph.size - 1; i++) {
     for (let j = 0; j < graph.size; j++) {
-      for (const edge of graph.nodes[j]) {
+      for (const edge of graph.nodes[j].edges) {
         const newDistance = distances[edge.from] + edge.weight;
         if (newDistance < distances[edge.to]) {
           distances[edge.to] = newDistance;
@@ -234,7 +234,7 @@ const bellmanFord = (graph: Graph, startNode: number) => {
     }
   }
   for (let j = 0; j < graph.size; j++) {
-    for (const edge of graph.nodes[j]) {
+    for (const edge of graph.nodes[j].edges) {
       const newDistance = distances[edge.from] + edge.weight;
       if (newDistance < distances[edge.to]) {
         throw new Error("Graph contains a negative-weight cycle");
@@ -258,12 +258,14 @@ const edmondsKarp = (graph: Graph, source: number, sink: number) => {
     }
     for (let v = sink; v !== source; v = parents[v]) {
       const u = parents[v];
-      const forwardEdge = newGraph.nodes[u].find((edge) => edge.to === v);
-      const backwardEdge = newGraph.nodes[v].find((edge) => edge.to === u);
+      const forwardEdge = newGraph.nodes[u].edges.find((edge) => edge.to === v);
+      const backwardEdge = newGraph.nodes[v].edges.find(
+        (edge) => edge.to === u
+      );
       if (forwardEdge) forwardEdge.weight -= pathFlow;
       backwardEdge
         ? (backwardEdge.weight += pathFlow)
-        : newGraph.nodes[v].push({ from: v, to: u, weight: pathFlow });
+        : newGraph.nodes[v].edges.push({ from: v, to: u, weight: pathFlow });
     }
     maxFlow += pathFlow;
   }

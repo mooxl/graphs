@@ -16,6 +16,7 @@ import { logWeight } from "./utilities.ts";
 
 while (true) {
   const directed = await Toggle.prompt("Is the graph directed?");
+  const balanced = await Toggle.prompt("Is the graph balanced?");
   const graph = new Graph(
     await Input.prompt({
       message: "Choose a graph",
@@ -50,7 +51,8 @@ while (true) {
         "Wege3",
       ],
     }),
-    directed
+    directed,
+    balanced
   );
   while (true) {
     const command = await Select.prompt({
