@@ -16,6 +16,9 @@ import {
   createResidualGraph,
   adjustBFlowAlongCycle,
   calculateMinimalCost,
+  adjustInitialFlow,
+  findSourceAndSink,
+  adjustFlowAlongPath,
 } from "./utilities.ts";
 import { balanced } from "./main.ts";
 
@@ -202,7 +205,7 @@ const branchAndBound = (graph: Graph) => {
 
 const dijkstra = (graph: Graph, startNode: number) => {
   const start = performance.now();
-  const distances = Array(graph.size).fill(Infinity);
+  const distances = Array(graph.size).fill(Infinity) as number[];
   distances[startNode] = 0;
   const visited = new Uint8Array(graph.size);
   const heap = new BinaryHeap<Edge>((a: Edge, b: Edge) => a.weight - b.weight);
@@ -340,7 +343,18 @@ const cycleCanceling = (graph: Graph) => {
 };
 
 const successiveShortestPath = (graph: Graph) => {
-  return 0;
+  const newGraph = structuredClone(graph) as Graph;
+  const adjustedGraph = adjustInitialFlow(newGraph);
+  while (true) {
+    const residualGraph = createResidualGraph(adjustedGraph);
+    const { source, sink } = findSourceAndSink(residualGraph, graph);
+    if (!source || !sink) {
+      const minimalCost = calculateMinimalCost(adjustedGraph);
+      return minimalCost;
+    }
+    const shortestPath = dijkstra(residualGraph, source);
+    adjustFlowAlongPath(adjustedGraph, shortestPath, source, sink, newGraph);
+  }
 };
 
 export {

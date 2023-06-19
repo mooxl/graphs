@@ -215,8 +215,93 @@ const calculateMinimalCost = (bFlowGraph: Graph) => {
       minimalCost += edge.weight * edge.flow!;
     }
   }
-  console.log("Minimal cost:", minimalCost);
   return minimalCost;
+};
+
+const adjustInitialFlow = (graph: Graph) => {
+  const newGraph = structuredClone(graph);
+  for (const node of newGraph.nodes) {
+    node.balance = 0;
+    for (const edge of node.edges) {
+      if (edge.weight < 0) {
+        edge.flow = edge.capacity;
+      }
+    }
+  }
+  for (const node of newGraph.nodes) {
+    for (const edge of node.edges) {
+      newGraph.nodes[edge.to].balance += edge.flow!;
+      newGraph.nodes[edge.from].balance -= edge.flow!;
+    }
+  }
+  return newGraph;
+};
+
+const findSourceAndSink = (residualGraph: Graph, originalGraph: Graph) => {
+  let source = null;
+  let sink = null;
+
+  for (let i = 0; i < residualGraph.size; i++) {
+    const balanceDifference =
+      originalGraph.nodes[i].balance - residualGraph.nodes[i].balance;
+    if (balanceDifference > 0) {
+      if (
+        source === null ||
+        balanceDifference >
+          originalGraph.nodes[source].balance -
+            residualGraph.nodes[source].balance
+      ) {
+        source = i;
+      }
+    } else if (balanceDifference < 0) {
+      if (
+        sink === null ||
+        balanceDifference <
+          originalGraph.nodes[sink].balance - residualGraph.nodes[sink].balance
+      ) {
+        sink = i;
+      }
+    }
+  }
+  return { source, sink };
+};
+const adjustFlowAlongPath = (
+  graph: Graph,
+  path: number[],
+  source: number,
+  sink: number,
+  originalGraph: Graph
+) => {
+  let minResidualCapacity = Infinity;
+  for (let i = 0; i < path.length - 1; i++) {
+    const from = path[i];
+    const to = path[i + 1];
+    const edge = graph.nodes[from].edges.find((edge) => edge.to === to);
+    if (edge && edge.capacity! < minResidualCapacity) {
+      minResidualCapacity = edge.capacity!;
+    }
+  }
+  const sourceBalanceDifference =
+    originalGraph.nodes[source].balance - graph.nodes[source].balance;
+  const sinkBalanceDifference =
+    graph.nodes[sink].balance - originalGraph.nodes[sink].balance;
+  const flowAdjustment = Math.min(
+    minResidualCapacity,
+    sourceBalanceDifference,
+    sinkBalanceDifference
+  );
+  for (let i = 0; i < path.length - 1; i++) {
+    const from = path[i];
+    const to = path[i + 1];
+    const edge = graph.nodes[from].edges.find((edge) => edge.to === to);
+    if (edge) {
+      edge.flow! += flowAdjustment;
+    }
+    const reverseEdge = graph.nodes[to].edges.find((edge) => edge.to === from);
+    if (reverseEdge) {
+      reverseEdge.flow! -= flowAdjustment;
+    }
+  }
 };
 
 const logTime = (text: string, start: number, end: number) => {
@@ -248,5 +333,8 @@ export {
   createResidualGraph,
   adjustBFlowAlongCycle,
   calculateMinimalCost,
+  adjustInitialFlow,
+  findSourceAndSink,
+  adjustFlowAlongPath,
   logWeight,
 };

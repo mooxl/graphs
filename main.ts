@@ -15,53 +15,49 @@ import {
   successiveShortestPath,
 } from "./algorithms.ts";
 import { logWeight } from "./utilities.ts";
-export let balanced = true;
+export let balanced: boolean;
 while (true) {
-  // const directed = await Toggle.prompt("Is the graph directed?");
-  // const balanced = await Toggle.prompt("Is the graph balanced?");
-  balanced = true;
+  const directed = await Toggle.prompt("Is the graph directed?");
+  balanced = await Toggle.prompt("Is the graph balanced?");
   const graph = new Graph(
-    // await Input.prompt({
-    //   message: "Choose a graph",
-    //   suggestions: [
-    //     "1",
-    //     "2",
-    //     "3",
-    //     "Fluss",
-    //     "Fluss2",
-    //     "gross",
-    //     "ganzGross",
-    //     "ganzGanzGross",
-    //     "G_1_2",
-    //     "G_1_20",
-    //     "G_1_200",
-    //     "G_10_20",
-    //     "G_10_200",
-    //     "G_100_200",
-    //     "K_10",
-    //     "K_10e",
-    //     "K_12",
-    //     "K_12e",
-    //     "K_15",
-    //     "K_15e",
-    //     "K_20",
-    //     "K_30",
-    //     "K_50",
-    //     "K_70",
-    //     "K_100",
-    //     "Kostenminimal1",
-    //     "Wege1",
-    //     "Wege2",
-    //     "Wege3",
-    //   ],
-    // }),
-    // yes,
-    // balanced
-    "Kostenminimal_gross1",
-    true,
+    await Input.prompt({
+      message: "Choose a graph",
+      suggestions: [
+        "1",
+        "2",
+        "3",
+        "Fluss",
+        "Fluss2",
+        "gross",
+        "ganzGross",
+        "ganzGanzGross",
+        "G_1_2",
+        "G_1_20",
+        "G_1_200",
+        "G_10_20",
+        "G_10_200",
+        "G_100_200",
+        "K_10",
+        "K_10e",
+        "K_12",
+        "K_12e",
+        "K_15",
+        "K_15e",
+        "K_20",
+        "K_30",
+        "K_50",
+        "K_70",
+        "K_100",
+        "Kostenminimal1",
+        "Wege1",
+        "Wege2",
+        "Wege3",
+      ],
+    }),
+    directed,
     balanced
   );
-  cycleCanceling(graph);
+  successiveShortestPath(graph);
   while (true) {
     const command = await Select.prompt({
       message: "What do you want to see?",
@@ -114,9 +110,7 @@ while (true) {
       case "branchAndBound":
         console.log(`The length is ${logWeight(branchAndBound(graph))}`);
         break;
-      case "bellmanFord":
-      case "dijkstra": {
-        const chosenFunction = command === "dijkstra" ? dijkstra : bellmanFord;
+      case "bellmanFord": {
         const startNode = await Input.prompt({
           message: "Choose a start node",
           default: "0",
@@ -127,7 +121,23 @@ while (true) {
         });
         console.log(
           `The shortest paths from ${startNode} to ${endNode} is ${colors.cyan(
-            chosenFunction(graph, +startNode)[+endNode].toFixed(2)
+            bellmanFord(graph, +startNode).nodes[+endNode].toFixed(2)
+          )}`
+        );
+        break;
+      }
+      case "dijkstra": {
+        const startNode = await Input.prompt({
+          message: "Choose a start node",
+          default: "0",
+        });
+        const endNode = await Input.prompt({
+          message: "Choose a end node",
+          default: "0",
+        });
+        console.log(
+          `The shortest paths from ${startNode} to ${endNode} is ${colors.cyan(
+            dijkstra(graph, +startNode)[+endNode].toFixed(2)
           )}`
         );
         break;
@@ -143,7 +153,7 @@ while (true) {
         });
         console.log(
           `The max flow from ${source} to ${sink} is ${colors.cyan(
-            edmondsKarp(graph, +source, +sink).toFixed(2)
+            edmondsKarp(graph, +source, +sink).maxFlow.toFixed(2)
           )}`
         );
         break;
@@ -155,7 +165,9 @@ while (true) {
             ? cycleCanceling
             : successiveShortestPath;
         console.log(
-          `The minimal cost is ${colors.cyan(chosenFunction(graph).toFixed(2))}`
+          `The minimal cost is ${colors.cyan(
+            chosenFunction(graph)!.toFixed(2)
+          )}`
         );
         break;
       }
