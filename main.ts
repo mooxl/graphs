@@ -4,6 +4,7 @@ import {
   bellmanFord,
   branchAndBound,
   bruteForce,
+  cycleCanceling,
   dijkstra,
   doubleTree,
   edmondsKarp,
@@ -11,6 +12,7 @@ import {
   nearestNeighbour,
   prim,
   subGraphs,
+  successiveShortestPath,
 } from "./algorithms.ts";
 import { logWeight } from "./utilities.ts";
 
@@ -68,6 +70,11 @@ while (true) {
         { name: "Shortest Path via Dijkstra", value: "dijkstra" },
         { name: "Shortest Path via Bellman-Ford", value: "bellmanFord" },
         { name: "Max Flow via Edmonds-Karp", value: "edmondsKarp" },
+        { name: "Min Cost via Cycle-Canceling", value: "cycleCanceling" },
+        {
+          name: "Min Cost via Successive-Shortest-Path",
+          value: "successiveShortestPath",
+        },
         { name: "Exit", value: "exit" },
       ],
     });
@@ -133,6 +140,18 @@ while (true) {
             edmondsKarp(graph, +source, +sink).toFixed(2)
           )}`
         );
+        break;
+      }
+      case "cycleCanceling":
+      case "successiveShortestPath": {
+        const chosenFunction =
+          command === "cycleCanceling"
+            ? cycleCanceling
+            : successiveShortestPath;
+        console.log(
+          `The minimal cost is ${colors.cyan(chosenFunction(graph).toFixed(2))}`
+        );
+        break;
       }
     }
     if (command === "exit") {

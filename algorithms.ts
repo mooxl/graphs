@@ -273,6 +273,14 @@ const edmondsKarp = (graph: Graph, source: number, sink: number) => {
   return maxFlow;
 };
 
+const cycleCanceling = (graph: Graph) => {
+  return 0;
+};
+
+const successiveShortestPath = (graph: Graph) => {
+  return 0;
+};
+
 export {
   subGraphs,
   prim,
@@ -284,4 +292,6 @@ export {
   dijkstra,
   bellmanFord,
   edmondsKarp,
+  cycleCanceling,
+  successiveShortestPath,
 };
