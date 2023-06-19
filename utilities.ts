@@ -2,6 +2,7 @@ import { format } from "duration";
 import { colors } from "cliffy";
 import { Graph } from "./graph.ts";
 import { Edge } from "./types.ts";
+import { balanced } from "./main.ts";
 
 const getTourWeight = (graph: Graph, path: number[]) => {
   let weight = 0;
@@ -105,10 +106,117 @@ const bfs = (
 const residualCapacity = (graph: Graph, from: number, to: number) => {
   for (const edge of graph.nodes[from].edges) {
     if (edge.to === to) {
-      return edge.weight;
+      return balanced ? edge.capacity! : edge.weight;
     }
   }
   return 0;
+};
+
+const createSuperSourceSinkGraph = (graph: Graph) => {
+  const newGraph = structuredClone(graph);
+  const superSource = newGraph.size;
+  const superSink = newGraph.size + 1;
+  newGraph.nodes.push({ balance: 0, edges: [] }, { balance: 0, edges: [] });
+  for (let i = 0; i < newGraph.size; i++) {
+    const node = newGraph.nodes[i];
+    if (node.balance > 0) {
+      newGraph.nodes[superSource].edges.push({
+        from: superSource,
+        to: i,
+        weight: 0,
+        capacity: node.balance,
+        flow: 0,
+      });
+      newGraph.nodes[superSource].balance += node.balance;
+      node.balance = 0;
+    } else if (node.balance < 0) {
+      newGraph.nodes[i].edges.push({
+        from: i,
+        to: superSink,
+        weight: 0,
+        capacity: -node.balance,
+        flow: 0,
+      });
+      newGraph.nodes[superSink].balance += node.balance;
+      node.balance = 0;
+    }
+  }
+  newGraph.size += 2;
+  return newGraph;
+};
+
+const addFlow = (originalGraph: Graph, bFlowGraph: Graph) => {
+  const newGraph: Graph = structuredClone(originalGraph);
+  for (let i = 0; i < newGraph.size; i++) {
+    for (let j = 0; j < newGraph.nodes[i].edges.length; j++) {
+      const edge = newGraph.nodes[i].edges[j];
+      const bFlowEdge = bFlowGraph.nodes[i].edges[j];
+      edge.flow = bFlowEdge.flow;
+    }
+  }
+  return newGraph;
+};
+
+const createResidualGraph = (bFlowGraph: Graph) => {
+  const residualGraph = structuredClone(bFlowGraph) as Graph;
+  for (let i = 0; i < residualGraph.size; i++) {
+    const node = residualGraph.nodes[i];
+    for (const edge of node.edges) {
+      if (edge.flow! > 0) {
+        const reverseEdge = {
+          from: edge.to,
+          to: edge.from,
+          weight: -edge.weight,
+          capacity: edge.flow,
+          flow: 0,
+        };
+        residualGraph.nodes[edge.to].edges.push(reverseEdge);
+      }
+      edge.capacity! -= edge.flow!;
+      edge.flow = 0;
+    }
+    node.edges = node.edges.filter((edge) => edge.capacity! > 0);
+  }
+  return residualGraph;
+};
+
+const adjustBFlowAlongCycle = (bFlowGraph: Graph, cycle: number[]) => {
+  let minCapacity = Infinity;
+  for (let i = 0; i < cycle.length - 1; i++) {
+    const from = cycle[i];
+    const to = cycle[i + 1];
+    const edge = bFlowGraph.nodes[from].edges.find((edge) => edge.to === to);
+    if (edge && edge.capacity! < minCapacity) {
+      minCapacity = edge.capacity!;
+    }
+  }
+  for (let i = 0; i < cycle.length - 1; i++) {
+    const from = cycle[i];
+    const to = cycle[i + 1];
+    const edge = bFlowGraph.nodes[from].edges.find((edge) => edge.to === to);
+    if (edge) {
+      edge.flow! += minCapacity;
+    }
+    const reverseEdge = bFlowGraph.nodes[to].edges.find(
+      (edge) => edge.to === from
+    );
+    if (reverseEdge) {
+      reverseEdge.flow! -= minCapacity;
+    }
+  }
+  return bFlowGraph;
+};
+
+const calculateMinimalCost = (bFlowGraph: Graph) => {
+  let minimalCost = 0;
+
+  for (const node of bFlowGraph.nodes) {
+    for (const edge of node.edges) {
+      minimalCost += edge.weight * edge.flow!;
+    }
+  }
+  console.log("Minimal cost:", minimalCost);
+  return minimalCost;
 };
 
 const logTime = (text: string, start: number, end: number) => {
@@ -135,5 +243,10 @@ export {
   getTourWeight,
   bfs,
   residualCapacity,
+  createSuperSourceSinkGraph,
+  addFlow,
+  createResidualGraph,
+  adjustBFlowAlongCycle,
+  calculateMinimalCost,
   logWeight,
 };

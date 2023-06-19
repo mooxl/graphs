@@ -3,6 +3,7 @@ export type Edge = {
   to: number;
   weight: number;
   capacity?: number;
+  flow?: number;
 };
 
 export type PartialTour = {

@@ -11,7 +11,13 @@ import {
   permute,
   bfs,
   residualCapacity,
+  createSuperSourceSinkGraph,
+  addFlow,
+  createResidualGraph,
+  adjustBFlowAlongCycle,
+  calculateMinimalCost,
 } from "./utilities.ts";
+import { balanced } from "./main.ts";
 
 const subGraphs = (graph: Graph) => {
   const start = performance.now();
@@ -222,6 +228,7 @@ const dijkstra = (graph: Graph, startNode: number) => {
 const bellmanFord = (graph: Graph, startNode: number) => {
   const start = performance.now();
   const distances = Array(graph.size).fill(Infinity);
+  const predecessors = Array(graph.size).fill(-1);
   distances[startNode] = 0;
   for (let i = 0; i < graph.size - 1; i++) {
     for (let j = 0; j < graph.size; j++) {
@@ -229,6 +236,7 @@ const bellmanFord = (graph: Graph, startNode: number) => {
         const newDistance = distances[edge.from] + edge.weight;
         if (newDistance < distances[edge.to]) {
           distances[edge.to] = newDistance;
+          predecessors[edge.to] = edge.from; // Aktualisiere das predecessors Array
         }
       }
     }
@@ -237,12 +245,23 @@ const bellmanFord = (graph: Graph, startNode: number) => {
     for (const edge of graph.nodes[j].edges) {
       const newDistance = distances[edge.from] + edge.weight;
       if (newDistance < distances[edge.to]) {
-        throw new Error("Graph contains a negative-weight cycle");
+        const negativeCycle = [];
+        let currentNode = edge.to;
+        for (let i = 0; i < graph.size; i++) {
+          currentNode = predecessors[currentNode];
+        }
+        let cycleNode = currentNode;
+        do {
+          negativeCycle.push(cycleNode);
+          cycleNode = predecessors[cycleNode];
+        } while (cycleNode !== currentNode);
+        negativeCycle.push(cycleNode);
+        return { nodes: negativeCycle.reverse(), negative: true };
       }
     }
   }
   logTime("Bellman-Ford finished in", start, performance.now());
-  return distances;
+  return { nodes: distances, negative: false };
 };
 
 const edmondsKarp = (graph: Graph, source: number, sink: number) => {
@@ -262,19 +281,62 @@ const edmondsKarp = (graph: Graph, source: number, sink: number) => {
       const backwardEdge = newGraph.nodes[v].edges.find(
         (edge) => edge.to === u
       );
-      if (forwardEdge) forwardEdge.weight -= pathFlow;
+      if (forwardEdge) {
+        balanced
+          ? (forwardEdge.capacity! -= pathFlow)
+          : (forwardEdge.weight -= pathFlow);
+        forwardEdge.flow! += pathFlow;
+      }
       backwardEdge
-        ? (backwardEdge.weight += pathFlow)
-        : newGraph.nodes[v].edges.push({ from: v, to: u, weight: pathFlow });
+        ? (balanced
+            ? (backwardEdge.capacity! -= pathFlow)
+            : (backwardEdge.weight -= pathFlow),
+          (backwardEdge.flow! -= pathFlow))
+        : newGraph.nodes[v].edges.push({
+            from: v,
+            to: u,
+            weight: pathFlow,
+            capacity: pathFlow,
+            flow: pathFlow,
+          });
     }
     maxFlow += pathFlow;
   }
   logTime("Edmonds-Karp finished in", start, performance.now());
-  return maxFlow;
+
+  return { maxFlow, newGraph };
 };
 
 const cycleCanceling = (graph: Graph) => {
-  return 0;
+  const start = performance.now();
+  const newGraph = structuredClone(graph) as Graph;
+  const superGraph = createSuperSourceSinkGraph(newGraph);
+  const { newGraph: superBFlowGraph, maxFlow } = edmondsKarp(
+    superGraph,
+    superGraph.size - 2,
+    superGraph.size - 1
+  );
+  const superSourceBalance = superBFlowGraph.nodes[superGraph.size - 2].balance;
+  const superSinkBalance = -superBFlowGraph.nodes[superGraph.size - 1].balance;
+  if (
+    maxFlow !== superSourceBalance ||
+    maxFlow !== superSinkBalance ||
+    superSourceBalance !== superSinkBalance
+  ) {
+    console.log("No flow found");
+    return;
+  }
+  let bFlowGraph = addFlow(graph, superBFlowGraph);
+  while (true) {
+    const residualGraph = createResidualGraph(bFlowGraph);
+    const { nodes: negativeCycle, negative } = bellmanFord(residualGraph, 0);
+    if (!negative) {
+      const minimalCost = calculateMinimalCost(bFlowGraph);
+      logTime("Cycle-Canceling finished in", start, performance.now());
+      return minimalCost;
+    }
+    bFlowGraph = adjustBFlowAlongCycle(bFlowGraph, negativeCycle);
+  }
 };
 
 const successiveShortestPath = (graph: Graph) => {
