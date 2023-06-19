@@ -1,9 +1,9 @@
 import { Input, Select, Toggle, colors } from "cliffy";
 import { Graph } from "./graph.ts";
 import {
+  bellmanFord,
   branchAndBound,
   bruteForce,
-  cycleCanceling,
   dijkstra,
   doubleTree,
   edmondsKarp,
@@ -11,13 +11,11 @@ import {
   nearestNeighbour,
   prim,
   subGraphs,
-  successiveShortestPath,
 } from "./algorithms.ts";
 import { logWeight } from "./utilities.ts";
 
 while (true) {
   const directed = await Toggle.prompt("Is the graph directed?");
-  const balanced = await Toggle.prompt("Is the graph balanced?");
   const graph = new Graph(
     await Input.prompt({
       message: "Choose a graph",
@@ -47,26 +45,17 @@ while (true) {
         "K_50",
         "K_70",
         "K_100",
-        "Kostenminimal1",
-        "Kostenminimal2",
-        "Kostenminimal3",
-        "Kostenminimal4",
-        "Kostenminimal_gross1",
-        "Kostenminimal_gross2",
-        "Kostenminimal_gross3",
         "Wege1",
         "Wege2",
         "Wege3",
       ],
     }),
-    directed,
-    balanced
+    directed
   );
   while (true) {
     const command = await Select.prompt({
       message: "What do you want to see?",
       options: [
-        { name: "Graph", value: "graph" },
         { name: "Size of subgraphs", value: "subgraphsSize" },
         { name: "Weight of MST via Prim", value: "primWeight" },
         { name: "Weight of MST via Kruskal", value: "kruskalWeight" },
@@ -77,18 +66,10 @@ while (true) {
         { name: "Shortest Path via Dijkstra", value: "dijkstra" },
         { name: "Shortest Path via Bellman-Ford", value: "bellmanFord" },
         { name: "Max Flow via Edmonds-Karp", value: "edmondsKarp" },
-        { name: "Min Cost via Cycle Canceling", value: "cycleCanceling" },
-        {
-          name: "Min Cost via Successive Shortest Path",
-          value: "successiveShortestPath",
-        },
         { name: "Exit", value: "exit" },
       ],
     });
     switch (command) {
-      case "graph":
-        console.log(graph);
-        break;
       case "subgraphsSize":
         console.log(
           `The graph has ${colors.cyan(
@@ -120,6 +101,7 @@ while (true) {
         break;
       case "bellmanFord":
       case "dijkstra": {
+        const chosenFunction = command === "dijkstra" ? dijkstra : bellmanFord;
         const startNode = await Input.prompt({
           message: "Choose a start node",
           default: "0",
@@ -130,7 +112,7 @@ while (true) {
         });
         console.log(
           `The shortest paths from ${startNode} to ${endNode} is ${colors.cyan(
-            dijkstra(graph, +startNode).distances[+endNode].toFixed(2)
+            chosenFunction(graph, +startNode)[+endNode].toFixed(2)
           )}`
         );
         break;
@@ -146,24 +128,9 @@ while (true) {
         });
         console.log(
           `The max flow from ${source} to ${sink} is ${colors.cyan(
-            edmondsKarp(graph, +source, +sink).maxFlow.toFixed(2)
+            edmondsKarp(graph, +source, +sink).toFixed(2)
           )}`
         );
-        break;
-      }
-      case "cycleCanceling": {
-        console.log(
-          `The min cost is ${colors.cyan(cycleCanceling(graph).toFixed(2))}`
-        );
-        break;
-      }
-      case "successiveShortestPath": {
-        console.log(
-          `The min cost is ${colors.cyan(
-            successiveShortestPath(graph).toFixed(2)
-          )}`
-        );
-        break;
       }
     }
     if (command === "exit") {
