@@ -49,6 +49,12 @@ while (true) {
         "K_70",
         "K_100",
         "Kostenminimal1",
+        "Kostenminimal2",
+        "Kostenminimal3",
+        "Kostenminimal4",
+        "Kostenminimal_gross1",
+        "Kostenminimal_gross2",
+        "Kostenminimal_gross3",
         "Wege1",
         "Wege2",
         "Wege3",
@@ -57,7 +63,6 @@ while (true) {
     directed,
     balanced
   );
-  successiveShortestPath(graph);
   while (true) {
     const command = await Select.prompt({
       message: "What do you want to see?",

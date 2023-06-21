@@ -209,7 +209,6 @@ const adjustBFlowAlongCycle = (bFlowGraph: Graph, cycle: number[]) => {
 
 const calculateMinimalCost = (bFlowGraph: Graph) => {
   let minimalCost = 0;
-
   for (const node of bFlowGraph.nodes) {
     for (const edge of node.edges) {
       minimalCost += edge.weight * edge.flow!;
@@ -240,7 +239,6 @@ const adjustInitialFlow = (graph: Graph) => {
 const findSourceAndSink = (residualGraph: Graph, originalGraph: Graph) => {
   let source = null;
   let sink = null;
-
   for (let i = 0; i < residualGraph.size; i++) {
     const balanceDifference =
       originalGraph.nodes[i].balance - residualGraph.nodes[i].balance;

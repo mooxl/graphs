@@ -329,7 +329,7 @@ const cycleCanceling = (graph: Graph) => {
     console.log("No flow found");
     return;
   }
-  let bFlowGraph = addFlow(graph, superBFlowGraph);
+  let bFlowGraph = addFlow(newGraph, superBFlowGraph);
   while (true) {
     const residualGraph = createResidualGraph(bFlowGraph);
     const { nodes: negativeCycle, negative } = bellmanFord(residualGraph, 0);
